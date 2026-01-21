@@ -39,5 +39,4 @@ const UserSchema = new Schema<IUser>(
   { timestamps: true }
 );
 
-// Prevent model overwrite in dev
 export default models.User || model<IUser>("User", UserSchema);
