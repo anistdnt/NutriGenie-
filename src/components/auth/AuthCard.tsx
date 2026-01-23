@@ -8,7 +8,7 @@ export default function AuthCard({
 }) {
   return (
     <div className="w-full max-w-md bg-white p-6 rounded-lg shadow">
-      <h1 className="text-2xl font-semibold mb-4 text-center">{title}</h1>
+      <h1 className="text-2xl font-semibold mb-4 text-center text-black">{title}</h1>
       {children}
     </div>
   );

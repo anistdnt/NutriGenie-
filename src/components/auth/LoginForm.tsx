@@ -1,58 +1,86 @@
+// components/auth/LoginForm.tsx
 "use client";
 
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+
 import AuthCard from "./AuthCard";
+import { LoginInput, loginSchema } from "@/src/lib/validators/auth.schema";
 
 export default function LoginForm() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
+  });
 
-    const res = await signIn("credentials", {
-      email,
-      password,
-      redirect: false, // IMPORTANT
-    });
+    const onSubmit = async (data: LoginInput) => {
+        try {
+            const res = await signIn("credentials", {
+                ...data,
+                redirect: false,
+            });
 
-    if (res?.error) {
-      setError("Invalid credentials");
-      return;
-    }
+            if (res?.error) {
+                setError("root", {
+                    message: "Invalid email or password",
+                });
+                return;
+            }
 
-    // SPA navigation
-    router.push("/dashboard");
-    router.refresh(); // ensures session is fresh
-  };
+            router.push("/dashboard");
+            router.refresh();
+        } catch (error) {
+            setError("root", {
+                message: "Something went wrong. Please try again.",
+            });
+        }
+    };
+
 
   return (
     <AuthCard title="Login">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="email"
-          className="w-full border p-2 rounded"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <div>
+          <input
+            type="email"
+            placeholder="Email"
+            className="w-full border p-2 rounded text-black"
+            {...register("email")}
+          />
+          {errors.email && (
+            <p className="text-sm text-red-500">
+              {errors.email.message}
+            </p>
+          )}
+        </div>
 
-        <input
-          type="password"
-          className="w-full border p-2 rounded"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+        <div>
+          <input
+            type="password"
+            placeholder="Password"
+            className="w-full border p-2 rounded text-black"
+            {...register("password")}
+          />
+          {errors.password && (
+            <p className="text-sm text-red-500">
+              {errors.password.message}
+            </p>
+          )}
+        </div>
 
-        {error && <p className="text-red-500 text-sm">{error}</p>}
-
-        <button className="w-full bg-black text-white py-2 rounded">
-          Login
+        <button
+          disabled={isSubmitting}
+          className="w-full bg-black text-white py-2 rounded disabled:opacity-50"
+        >
+          {isSubmitting ? "Logging in..." : "Login"}
         </button>
       </form>
     </AuthCard>
