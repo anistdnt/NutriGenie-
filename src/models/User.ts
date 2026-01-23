@@ -9,6 +9,7 @@ export interface IUser {
   height?: number; // cm
   foodPreference?: "veg" | "non-veg" | "vegan";
   cuisinePreference?: "indian" | "western" | "mixed";
+  password?: string;
 }
 
 const UserSchema = new Schema<IUser>(
@@ -30,6 +31,10 @@ const UserSchema = new Schema<IUser>(
     foodPreference: {
       type: String,
       enum: ["veg", "non-veg", "vegan"],
+    },
+    password: {
+      type: String,
+      select: false,
     },
     cuisinePreference: {
       type: String,
