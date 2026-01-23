@@ -2,21 +2,27 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { connectDB } from "@/src/lib/db/mongo";
 import User from "@/src/models/User";
+import { registerSchema } from "@/src/lib/validators/auth.schema";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { email, password, name } = body;
 
-    if (!email || !password) {
+    // 1️⃣ Zod validation
+    const parsed = registerSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { message: "Email and password are required" },
+        { message: parsed.error.issues[0].message },
         { status: 400 }
       );
     }
 
+    const { email, password } = parsed.data;
+
+    // 2️⃣ DB connect
     await connectDB();
 
+    // 3️⃣ Check existing user
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return NextResponse.json(
@@ -25,16 +31,17 @@ export async function POST(req: Request) {
       );
     }
 
+    // 4️⃣ Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // 5️⃣ Create user
     await User.create({
       email,
-      name,
       password: hashedPassword,
     });
 
     return NextResponse.json(
-      { message: "User created successfully" },
+      { message: "User registered successfully" },
       { status: 201 }
     );
   } catch (error) {
