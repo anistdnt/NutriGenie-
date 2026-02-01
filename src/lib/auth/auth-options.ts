@@ -1,12 +1,20 @@
 import type { NextAuthOptions } from "next-auth";
+import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { connectDB } from "../db/mongo";
 import User from "@/src/models/User";
 import { loginSchema } from "../validators/auth.schema";
+import clientPromise from "../db/mongoClient";
+import { MongoDBAdapter } from "@auth/mongodb-adapter";
 
 export const authOptions: NextAuthOptions = {
+  adapter: MongoDBAdapter(clientPromise),
   providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -44,6 +52,12 @@ export const authOptions: NextAuthOptions = {
 
   session: {
     strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days 
+    updateAge: 24 * 60 * 60, // 24 hours
+  },
+
+  jwt: {
+    maxAge: 30 * 24 * 60 * 60, // ✅ keep JWT in sync
   },
 
   pages: {
@@ -64,6 +78,26 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
+
+    async redirect({ url, baseUrl }) {
+      // Allow relative callback URLs
+      if (url.startsWith("/")) {
+        return `${baseUrl}${url}`;
+      }
+
+      // Allow same-origin URLs EXCEPT auth pages
+      if (url.startsWith(baseUrl)) {
+        const path = url.replace(baseUrl, "");
+        if (path.startsWith("/login") || path.startsWith("/register")) {
+          return `${baseUrl}/dashboard`;
+        }
+        return url;
+      }
+
+      // Fallback
+      return `${baseUrl}/dashboard`;
+    }
+
   },
 
   secret: process.env.NEXTAUTH_SECRET,
