@@ -7,9 +7,11 @@ import { registerSchema } from "@/src/lib/validators/auth.schema";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
+    console.log("Received registration data:", body);
 
     // 1️⃣ Zod validation
     const parsed = registerSchema.safeParse(body);
+    console.log("Parsed registration data:", parsed);
     if (!parsed.success) {
       return NextResponse.json(
         { message: parsed.error.issues[0].message },

@@ -1,18 +1,18 @@
-// app/(protected)/layout.tsx
-import { authOptions } from "@/src/lib/auth/auth-options";
-import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
+import Navbar from "@/src/components/layout/Navbar";
+import AuthSessionProvider from "@/src/components/providers/SessionProvider";
 
-export default async function ProtectedLayout({
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+export default function ProtectedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getServerSession(authOptions);
-
-  if (!session) {
-    redirect("/login");
-  }
-
-  return <>{children}</>;
+  return (
+    <AuthSessionProvider>
+      <Navbar />
+      <main className="p-6">{children}</main>
+    </AuthSessionProvider>
+  );
 }
