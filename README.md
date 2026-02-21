@@ -1,36 +1,84 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NutriGenie 🥗
+
+**NutriGenie** is a modern nutritional management platform built with **Next.js 16** and **MongoDB**. It provides personalized meal planning and dietary tracking.
+
+## Technical Architecture
+
+NutriGenie leverages a modern monolithic architecture within the Next.js App Router paradigm.
+
+-   **Frontend**: React Server Components (RSC) by default, with client boundaries for interactivity (forms, auth state).
+-   **Backend**: Server Actions and API Routes integrated directly within the Next.js framework.
+-   **Database**: MongoDB (NoSQL) with Mongoose ODM for schema validation.
+-   **Authentication**: NextAuth.js (v4) handling session management via JWTs and MongoDB storage.
+
+For a detailed architecture breakdown, please see [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md).
+
+## Tech Stack
+
+-   **Framework**: Next.js 16.1.4 (App Router)
+-   **Language**: TypeScript 5.x
+-   **Styling**: Tailwind CSS 4
+-   **Database**: MongoDB + Mongoose
+-   **Authentication**: NextAuth.js
+-   **Validation**: Zod + React Hook Form
+
+## Project Structure
+
+```bash
+nutrigenie/
+├── src/
+│   ├── app/                # Next.js App Router pages
+│   │   ├── (auth)/         # Public authentication routes
+│   │   ├── (protected)/    # Protected dashboard routes
+│   │   ├── api/            # API endpoints (Auth, etc.)
+│   │   └── layout.tsx      # Root layout
+│   ├── components/         # React components
+│   ├── lib/                # Shared utilities & configs
+│   │   ├── auth/           # NextAuth configuration
+│   │   ├── db/             # Database connection logic
+│   │   └── validators/     # Zod schemas
+│   ├── models/             # Mongoose data models
+│   └── middleware.ts       # Route protection middleware
+├── public/                 # Static assets
+└── ...config files         # Tooling configuration
+```
 
 ## Getting Started
 
-First, run the development server:
+1.  **Clone the repository**:
+    ```bash
+    git clone https://github.com/your-username/nutrigenie.git
+    cd nutrigenie
+    ```
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+2.  **Install dependencies**:
+    ```bash
+    npm install
+    # or
+    pnpm install
+    ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+3.  **Environment Setup**:
+    Create a `.env.local` file in the root:
+    ```env
+    MONGODB_URI=your_mongodb_connection_string
+    NEXTAUTH_SECRET=your_nextauth_secret
+    NEXTAUTH_URL=http://localhost:3000
+    GOOGLE_CLIENT_ID=your_google_client_id
+    GOOGLE_CLIENT_SECRET=your_google_client_secret
+    ```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+4.  **Run Development Server**:
+    ```bash
+    npm run dev
+    ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+5.  **Open Browser**:
+    Visit [http://localhost:3000](http://localhost:3000).
 
-## Learn More
+## Contributing
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Please follow the coding standards outlined in the documentation.
+-   Use **strict mode** TypeScript.
+-   Use **Tailwind CSS** for styling.
+-   Commit messages should follow conventional commits.
