@@ -5,7 +5,8 @@ export const openRouter = createOpenAI({
     apiKey: process.env.OPENROUTER_API_KEY || "",
 });
 
-export const model = openRouter("google/gemini-flash-1.5");
+// Using a reliable model from OpenRouter
+export const model = openRouter.chat("meta-llama/llama-3.1-8b-instruct");
 
 export const TRIAGE_SYSTEM_PROMPT = `
 You are Dr. Genie, the intelligent triage coordinator for NutriGenie.

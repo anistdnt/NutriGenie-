@@ -57,10 +57,10 @@ export default function HealthProfilePage() {
     };
 
     return (
-        <div className="max-w-3xl mx-auto p-6 min-h-screen bg-gray-50 dark:bg-gray-950">
+        <div className="max-w-3xl mx-auto p-6 min-h-screen bg-slate-950 text-slate-100">
             <div className="mb-8">
-                <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-gray-100">Complete Your Health Profile</h1>
-                <p className="text-gray-600 dark:text-gray-400">
+                <h1 className="text-3xl font-bold mb-2 text-slate-100">Complete Your Health Profile</h1>
+                <p className="text-slate-400">
                     Help Dr. Genie provide personalized health guidance
                 </p>
                 <div className="flex gap-2 mt-4">
@@ -89,7 +89,7 @@ export default function HealthProfilePage() {
                                     onClick={() => handleArrayToggle("allergies", allergy)}
                                     className={`p-3 rounded-lg border text-sm transition-all ${formData.allergies?.includes(allergy)
                                         ? "bg-red-50 dark:bg-red-900/20 border-red-500 text-red-700 dark:text-red-300"
-                                        : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-gray-400"
+                                : "bg-slate-900 border-slate-700 hover:border-slate-500"
                                         }`}
                                 >
                                     {allergy}
@@ -110,7 +110,7 @@ export default function HealthProfilePage() {
                                     onClick={() => handleArrayToggle("medicalConditions", condition)}
                                     className={`p-3 rounded-lg border text-sm transition-all ${formData.medicalConditions?.includes(condition)
                                         ? "bg-blue-50 dark:bg-blue-900/20 border-blue-500"
-                                        : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-gray-400"
+                                        : "bg-slate-900 border-slate-700 hover:border-slate-500"
                                         }`}
                                 >
                                     {condition}
@@ -126,7 +126,7 @@ export default function HealthProfilePage() {
                         <input
                             type="text"
                             placeholder="e.g., Metformin, Lisinopril (comma-separated)"
-                            className="w-full p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+                            className="w-full p-3 rounded-lg border border-slate-700 bg-slate-900"
                             onChange={(e) =>
                                 setFormData({
                                     ...formData,
@@ -153,7 +153,7 @@ export default function HealthProfilePage() {
                                     onClick={() => handleArrayToggle("dietaryRestrictions", diet)}
                                     className={`p-3 rounded-lg border text-sm transition-all ${formData.dietaryRestrictions?.includes(diet)
                                         ? "bg-green-50 dark:bg-green-900/20 border-green-500"
-                                        : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-gray-400"
+                                        : "bg-slate-900 border-slate-700 hover:border-slate-500"
                                         }`}
                                 >
                                     {diet}
@@ -179,7 +179,7 @@ export default function HealthProfilePage() {
                                     onClick={() => handleArrayToggle("healthGoals", goal)}
                                     className={`p-3 rounded-lg border text-sm transition-all ${formData.healthGoals?.includes(goal)
                                         ? "bg-purple-50 dark:bg-purple-900/20 border-purple-500"
-                                        : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-gray-400"
+                                        : "bg-slate-900 border-slate-700 hover:border-slate-500"
                                         }`}
                                 >
                                     {goal}
@@ -195,9 +195,9 @@ export default function HealthProfilePage() {
                         <select
                             value={formData.activityLevel || ""}
                             onChange={(e) =>
-                                setFormData({ ...formData, activityLevel: e.target.value as any })
+                                setFormData({ ...formData, activityLevel: e.target.value as HealthProfileInput["activityLevel"] })
                             }
-                            className="w-full p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+                            className="w-full p-3 rounded-lg border border-slate-700 bg-slate-900"
                         >
                             <option value="">Select...</option>
                             {ACTIVITY_LEVELS.map((level) => (
@@ -216,7 +216,7 @@ export default function HealthProfilePage() {
                             <input
                                 type="number"
                                 placeholder="e.g., 75"
-                                className="w-full p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+                                className="w-full p-3 rounded-lg border border-slate-700 bg-slate-900"
                                 onChange={(e) =>
                                     setFormData({ ...formData, targetWeight: e.target.value ? Number(e.target.value) : undefined })
                                 }
@@ -229,7 +229,7 @@ export default function HealthProfilePage() {
                             <input
                                 type="number"
                                 placeholder="e.g., 2000"
-                                className="w-full p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+                                className="w-full p-3 rounded-lg border border-slate-700 bg-slate-900"
                                 onChange={(e) =>
                                     setFormData({ ...formData, targetCalories: e.target.value ? Number(e.target.value) : undefined })
                                 }
@@ -244,14 +244,14 @@ export default function HealthProfilePage() {
                 <button
                     onClick={() => setStep(step - 1)}
                     disabled={step === 1}
-                    className="px-6 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 disabled:opacity-50"
+                    className="px-6 py-2 rounded-lg border border-slate-700 text-slate-100 disabled:opacity-50"
                 >
                     Back
                 </button>
                 {step < 3 ? (
                     <button
                         onClick={() => setStep(step + 1)}
-                        className="px-6 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg hover:opacity-90"
+                        className="px-6 py-2 bg-slate-100 text-slate-900 rounded-lg hover:opacity-90"
                     >
                         Next
                     </button>

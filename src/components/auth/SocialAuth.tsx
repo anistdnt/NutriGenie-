@@ -4,34 +4,20 @@ import { signIn } from "next-auth/react";
 
 export default function SocialAuth() {
   return (
-    <div className="space-y-4">
-      {/* Divider */}
+    <div className="space-y-4 w-full max-w-md">
       <div className="flex items-center gap-3">
-        <div className="flex-1 h-px bg-gray-300" />
-        <span className="text-xs text-gray-500 uppercase tracking-wide">
+        <div className="flex-1 h-px bg-slate-800" />
+        <span className="text-xs text-slate-500 uppercase tracking-wide">
           Or continue with
         </span>
-        <div className="flex-1 h-px bg-gray-300" />
+        <div className="flex-1 h-px bg-slate-800" />
       </div>
 
-      {/* Google Button */}
       <button
         type="button"
         onClick={() => signIn("google")}
-        className="
-          w-full flex items-center justify-center gap-3
-          border border-gray-300
-          bg-white text-gray-800
-          py-2.5 rounded-md
-          font-medium
-          transition
-          hover:bg-gray-100
-          hover:shadow-sm
-          hover:cursor-pointer
-          active:scale-[0.98]
-        "
+        className="w-full flex items-center justify-center gap-3 border border-slate-700 bg-slate-900 text-slate-200 py-2.5 rounded-xl font-medium transition hover:bg-slate-800 active:scale-[0.98]"
       >
-        {/* Google Icon */}
         <svg width="18" height="18" viewBox="0 0 48 48">
           <path
             fill="#EA4335"
@@ -50,7 +36,6 @@ export default function SocialAuth() {
             d="M24 46.5c6.6 0 12.1-2.2 16.1-6l-7.5-5.8c-2 1.4-4.6 2.4-8.6 2.4-6.5 0-12-5.5-13.6-13l-5.9 4.6C7.3 39.4 14.9 46.5 24 46.5z"
           />
         </svg>
-
         <span>Continue with Google</span>
       </button>
     </div>

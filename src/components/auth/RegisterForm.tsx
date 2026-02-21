@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
@@ -25,7 +26,6 @@ export default function RegisterForm() {
 
   const onSubmit = async (data: RegisterInput) => {
     try {
-        console.log("Submitting registration for:", data);
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -38,7 +38,6 @@ export default function RegisterForm() {
         return;
       }
 
-      // 🔥 Auto login after signup
       const loginRes = await signIn("credentials", {
         email: data.email,
         password: data.password,
@@ -60,17 +59,17 @@ export default function RegisterForm() {
   };
 
   return (
-    <AuthCard title="Create Account">
+    <AuthCard title="Create Account" subtitle="Start your personalized nutrition journey.">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
           <input
             type="email"
-            placeholder="Email"
-            className="w-full border p-2 rounded text-black"
+            placeholder="Email address"
+            className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-emerald-500 focus:outline-none"
             {...register("email")}
           />
           {errors.email && (
-            <p className="text-sm text-red-500">{errors.email.message}</p>
+            <p className="text-sm text-rose-400 mt-1">{errors.email.message}</p>
           )}
         </div>
 
@@ -78,40 +77,43 @@ export default function RegisterForm() {
           <input
             type="password"
             placeholder="Password"
-            className="w-full border p-2 rounded text-black"
+            className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-emerald-500 focus:outline-none"
             {...register("password")}
           />
           {errors.password && (
-            <p className="text-sm text-red-500">
-              {errors.password.message}
-            </p>
+            <p className="text-sm text-rose-400 mt-1">{errors.password.message}</p>
           )}
         </div>
 
         <div>
           <input
             type="password"
-            placeholder="Confirm Password"
-            className="w-full border p-2 rounded text-black"
+            placeholder="Confirm password"
+            className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-emerald-500 focus:outline-none"
             {...register("confirmPassword")}
           />
           {errors.confirmPassword && (
-            <p className="text-sm text-red-500">
-              {errors.confirmPassword.message}
-            </p>
+            <p className="text-sm text-rose-400 mt-1">{errors.confirmPassword.message}</p>
           )}
         </div>
 
         {errors.root && (
-          <p className="text-sm text-red-500">{errors.root.message}</p>
+          <p className="text-sm text-rose-400">{errors.root.message}</p>
         )}
 
         <button
           disabled={isSubmitting}
-          className="w-full bg-black text-white py-2 rounded disabled:opacity-50"
+          className="w-full rounded-xl bg-emerald-500 py-3 text-sm font-bold text-slate-950 hover:bg-emerald-400 disabled:opacity-60"
         >
-          {isSubmitting ? "Creating account..." : "Register"}
+          {isSubmitting ? "Creating account..." : "Create Account"}
         </button>
+
+        <p className="text-center text-sm text-slate-400">
+          Already have an account?{" "}
+          <Link href="/login" className="text-emerald-300 hover:text-emerald-200 font-semibold">
+            Log in
+          </Link>
+        </p>
       </form>
     </AuthCard>
   );

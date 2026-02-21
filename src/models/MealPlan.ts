@@ -1,54 +1,63 @@
 import mongoose, { Schema, model, models } from "mongoose";
 
-export interface IMealPlan {
-  userId: mongoose.Types.ObjectId;
-  date: string; // YYYY-MM-DD
-  weight?: number;
-  goal: "loss" | "gain" | "maintain";
-  mealsPerDay: number;
-  totalCalories: number;
-  mealPlanText: string;
+export interface IMeal {
+  name: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  ingredients?: string[];
+  instructions?: string[];
 }
+
+export interface IMealPlan {
+  userId: mongoose.Types.ObjectId | string;
+  title: string;
+  description?: string;
+  meals: {
+    breakfast?: IMeal;
+    lunch?: IMeal;
+    dinner?: IMeal;
+    snacks?: IMeal[];
+  };
+  totalNutrients: {
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+  };
+  createdAt: Date;
+}
+
+const MealSchema = new Schema<IMeal>({
+  name: { type: String, required: true },
+  calories: { type: Number, required: true },
+  protein: { type: Number, required: true },
+  carbs: { type: Number, required: true },
+  fat: { type: Number, required: true },
+  ingredients: [String],
+  instructions: [String],
+});
 
 const MealPlanSchema = new Schema<IMealPlan>(
   {
-    userId: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-      index: true,
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    title: { type: String, required: true },
+    description: String,
+    meals: {
+      breakfast: MealSchema,
+      lunch: MealSchema,
+      dinner: MealSchema,
+      snacks: [MealSchema],
     },
-    date: {
-      type: String,
-      required: true,
-      index: true,
-    },
-    weight: Number,
-    goal: {
-      type: String,
-      enum: ["loss", "gain", "maintain"],
-      required: true,
-    },
-    mealsPerDay: {
-      type: Number,
-      required: true,
-      min: 2,
-      max: 6,
-    },
-    totalCalories: {
-      type: Number,
-      required: true,
-    },
-    mealPlanText: {
-      type: String,
-      required: true,
+    totalNutrients: {
+      calories: { type: Number, required: true },
+      protein: { type: Number, required: true },
+      carbs: { type: Number, required: true },
+      fat: { type: Number, required: true },
     },
   },
   { timestamps: true }
 );
 
-// Prevent duplicates per day
-MealPlanSchema.index({ userId: 1, date: 1 }, { unique: true });
-
-export default models.MealPlan ||
-  model<IMealPlan>("MealPlan", MealPlanSchema);
+export default models.MealPlan || model<IMealPlan>("MealPlan", MealPlanSchema);

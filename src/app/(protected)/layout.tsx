@@ -27,7 +27,7 @@ export default async function ProtectedLayout({
     <AuthProvider>
       <OnboardingGuard isProfileComplete={isProfileComplete}>
         <Navbar />
-        <main className="min-h-[calc(100vh-64px)] bg-gray-50">{children}</main>
+        <main className="min-h-[calc(100vh-64px)] bg-slate-950 text-slate-100">{children}</main>
       </OnboardingGuard>
     </AuthProvider>
   );

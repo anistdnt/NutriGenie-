@@ -18,7 +18,7 @@ export default function OnboardingPage() {
         handleSubmit,
         formState: { errors, isSubmitting },
     } = useForm<OnboardingInput>({
-        resolver: zodResolver(onboardingSchema) as any,
+        resolver: zodResolver(onboardingSchema) as never,
     });
 
     const onSubmit = async (data: OnboardingInput) => {
@@ -31,73 +31,68 @@ export default function OnboardingPage() {
                 return;
             }
 
-            await update(); // Refresh session
+            await update();
             router.push("/dashboard");
             router.refresh();
-        } catch (err) {
+        } catch {
             setError("An unexpected error occurred");
         }
     };
 
     return (
-        <div className="max-w-2xl mx-auto py-10">
-            <div className="bg-white shadow rounded-lg p-8">
-                <h1 className="text-3xl font-bold mb-2">Welcome to NutriGenie! 🥗</h1>
-                <p className="text-gray-600 mb-8">
-                    Let&apos;s personalize your experience. Tell us a bit about yourself.
+        <div className="max-w-2xl mx-auto py-10 px-4">
+            <div className="bg-slate-900/70 border border-slate-800 rounded-3xl p-8 shadow-2xl shadow-black/20">
+                <h1 className="text-3xl font-black mb-2 text-slate-100">Welcome to NutriGenie</h1>
+                <p className="text-slate-400 mb-8">
+                    Let us personalize your experience. Tell us a bit about yourself.
                 </p>
 
                 {error && (
-                    <div className="bg-red-50 text-red-500 p-3 rounded mb-4">
+                    <div className="bg-rose-900/20 border border-rose-800 text-rose-300 p-3 rounded-xl mb-4">
                         {error}
                     </div>
                 )}
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Age */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label className="block text-sm font-medium text-slate-300 mb-1">
                                 Age
                             </label>
                             <input
                                 type="number"
                                 {...register("age")}
-                                className="w-full border rounded-md p-2 focus:ring-2 focus:ring-green-500 outline-none"
+                                className="w-full border border-slate-700 bg-slate-950 rounded-xl p-3 focus:ring-2 focus:ring-emerald-500/40 outline-none"
                                 placeholder="e.g. 25"
                             />
                             {errors.age && (
-                                <p className="text-sm text-red-500 mt-1">{errors.age.message}</p>
+                                <p className="text-sm text-rose-400 mt-1">{errors.age.message}</p>
                             )}
                         </div>
 
-                        {/* Height */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label className="block text-sm font-medium text-slate-300 mb-1">
                                 Height (cm)
                             </label>
                             <input
                                 type="number"
                                 {...register("height")}
-                                className="w-full border rounded-md p-2 focus:ring-2 focus:ring-green-500 outline-none"
+                                className="w-full border border-slate-700 bg-slate-950 rounded-xl p-3 focus:ring-2 focus:ring-emerald-500/40 outline-none"
                                 placeholder="e.g. 175"
                             />
                             {errors.height && (
-                                <p className="text-sm text-red-500 mt-1">
-                                    {errors.height.message}
-                                </p>
+                                <p className="text-sm text-rose-400 mt-1">{errors.height.message}</p>
                             )}
                         </div>
                     </div>
 
-                    {/* Gender */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-slate-300 mb-1">
                             Gender
                         </label>
                         <select
                             {...register("gender")}
-                            className="w-full border rounded-md p-2 focus:ring-2 focus:ring-green-500 outline-none bg-white"
+                            className="w-full border border-slate-700 bg-slate-950 rounded-xl p-3 focus:ring-2 focus:ring-emerald-500/40 outline-none"
                         >
                             <option value="">Select gender</option>
                             <option value="male">Male</option>
@@ -105,48 +100,46 @@ export default function OnboardingPage() {
                             <option value="other">Other</option>
                         </select>
                         {errors.gender && (
-                            <p className="text-sm text-red-500 mt-1">
+                            <p className="text-sm text-rose-400 mt-1">
                                 {errors.gender.message}
                             </p>
                         )}
                     </div>
 
-                    {/* Food Preference */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-slate-300 mb-1">
                             Dietary Preference
                         </label>
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-3 gap-3">
                             {["veg", "non-veg", "vegan"].map((type) => (
                                 <label
                                     key={type}
-                                    className="flex items-center space-x-2 border p-3 rounded cursor-pointer hover:bg-gray-50"
+                                    className="flex items-center justify-center space-x-2 border border-slate-700 bg-slate-950 p-3 rounded-xl cursor-pointer hover:border-emerald-500/50"
                                 >
                                     <input
                                         type="radio"
                                         value={type}
                                         {...register("foodPreference")}
-                                        className="text-green-600 focus:ring-green-500"
+                                        className="text-emerald-500 focus:ring-emerald-500"
                                     />
-                                    <span className="capitalize">{type}</span>
+                                    <span className="capitalize text-sm">{type}</span>
                                 </label>
                             ))}
                         </div>
                         {errors.foodPreference && (
-                            <p className="text-sm text-red-500 mt-1">
+                            <p className="text-sm text-rose-400 mt-1">
                                 {errors.foodPreference.message}
                             </p>
                         )}
                     </div>
 
-                    {/* Cuisine Preference */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-slate-300 mb-1">
                             Preferred Cuisine
                         </label>
                         <select
                             {...register("cuisinePreference")}
-                            className="w-full border rounded-md p-2 focus:ring-2 focus:ring-green-500 outline-none bg-white"
+                            className="w-full border border-slate-700 bg-slate-950 rounded-xl p-3 focus:ring-2 focus:ring-emerald-500/40 outline-none"
                         >
                             <option value="">Select cuisine</option>
                             <option value="indian">Indian</option>
@@ -154,7 +147,7 @@ export default function OnboardingPage() {
                             <option value="mixed">Mixed</option>
                         </select>
                         {errors.cuisinePreference && (
-                            <p className="text-sm text-red-500 mt-1">
+                            <p className="text-sm text-rose-400 mt-1">
                                 {errors.cuisinePreference.message}
                             </p>
                         )}
@@ -163,7 +156,7 @@ export default function OnboardingPage() {
                     <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="w-full bg-green-600 text-white py-3 rounded-md font-medium hover:bg-green-700 transition disabled:opacity-50"
+                        className="w-full bg-emerald-500 text-slate-950 py-3 rounded-xl font-bold hover:bg-emerald-400 transition disabled:opacity-50"
                     >
                         {isSubmitting ? "Saving Profile..." : "Complete Setup"}
                     </button>
