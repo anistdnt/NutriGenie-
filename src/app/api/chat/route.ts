@@ -8,6 +8,7 @@ import MealPlan from "@/src/models/MealPlan";
 import User from "@/src/models/User";
 import Chat from "@/src/models/Chat";
 
+export const runtime = "nodejs";
 export const maxDuration = 60;
 
 type ChatRole = "user" | "assistant" | "system";
@@ -145,7 +146,9 @@ export async function GET(req: Request) {
         }
 
         if (threadId) {
-            const chat = await Chat.findOne({ _id: threadId, userId: user._id }).lean();
+            const chat = (await Chat.findOne({ _id: threadId, userId: user._id }).lean()) as
+                | { _id: unknown; title?: string; messages?: unknown[] }
+                | null;
             if (!chat) {
                 return new Response(JSON.stringify({ threadId, messages: [] }), {
                     headers: { "Content-Type": "application/json" },
@@ -162,7 +165,9 @@ export async function GET(req: Request) {
             );
         }
 
-        const latest = await Chat.findOne({ userId: user._id }).sort({ lastMessageAt: -1 }).lean();
+        const latest = (await Chat.findOne({ userId: user._id }).sort({ lastMessageAt: -1 }).lean()) as
+            | { _id: unknown; title?: string; messages?: unknown[] }
+            | null;
         return new Response(
             JSON.stringify({
                 threadId: latest?._id ? String(latest._id) : null,
@@ -399,3 +404,4 @@ export async function PATCH(req: Request) {
         return new Response(JSON.stringify({ error: message }), { status: 500 });
     }
 }
+

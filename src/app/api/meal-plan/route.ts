@@ -5,6 +5,8 @@ import { connectDB } from "@/src/lib/db/mongo";
 import MealPlan from "@/src/models/MealPlan";
 import User from "@/src/models/User";
 
+export const runtime = "nodejs";
+
 export async function GET() {
     try {
         const session = await getServerSession(authOptions);
@@ -30,3 +32,4 @@ export async function GET() {
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }
+
