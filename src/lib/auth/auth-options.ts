@@ -4,6 +4,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { connectDB } from "../db/mongo";
 import User from "@/src/models/User";
+import { findUserByEmailInsensitive } from "@/src/lib/db/user";
 import { loginSchema } from "../validators/auth.schema";
 import clientPromise from "../db/mongoClient";
 import { MongoDBAdapter } from "@auth/mongodb-adapter";
@@ -22,7 +23,7 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
 
-      async authorize(credentials) {
+    async authorize(credentials) {
         // 1️⃣ Validate input
         const parsed = loginSchema.safeParse(credentials);
         if (!parsed.success) return null;
@@ -45,6 +46,7 @@ export const authOptions: NextAuthOptions = {
           id: user._id.toString(),
           email: user.email,
           name: user.name || "",
+          image: user.image || null,
         };
       },
     }),
@@ -68,6 +70,9 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.email = user.email;
+        token.name = user.name;
+        token.picture = user.image || token.picture;
       }
       return token;
     },
@@ -75,6 +80,19 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
+        session.user.email = (token.email as string) || session.user.email;
+        session.user.name = (token.name as string) || session.user.name;
+
+        const fallbackAvatar = "/default-avatar.svg";
+        let dbImage: string | undefined;
+
+        if (token.email) {
+          await connectDB();
+          const dbUser = await findUserByEmailInsensitive(String(token.email));
+          dbImage = dbUser?.image;
+        }
+
+        session.user.image = dbImage || (token.picture as string | undefined) || fallbackAvatar;
       }
       return session;
     },

@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import MealPlanCard from "@/src/components/chat/MealPlanCard";
-import { Loader2, BookOpen, PlusCircle } from "lucide-react";
+import { Loader2, BookOpen, PlusCircle, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { useToast } from "@/src/components/providers/ToastProvider";
 
 interface MealPlanItem {
     _id: string;
@@ -15,13 +16,15 @@ interface MealPlanItem {
 }
 
 export default function MealPlanPage() {
+    const toast = useToast();
     const [mealPlans, setMealPlans] = useState<MealPlanItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [deletingPlanId, setDeletingPlanId] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchMealPlans = async () => {
             try {
-                const res = await fetch("/api/meal-plan");
+                const res = await fetch("/api/meal-plan", { cache: "no-store" });
                 const data = await res.json();
                 if (data.mealPlans) {
                     setMealPlans(data.mealPlans);
@@ -35,6 +38,26 @@ export default function MealPlanPage() {
 
         fetchMealPlans();
     }, []);
+
+    const handleDeleteMealPlan = async (id: string) => {
+        try {
+            setDeletingPlanId(id);
+            const res = await fetch(`/api/meal-plan/${id}`, { method: "DELETE" });
+            const result = await res.json();
+            if (!res.ok || !result.success) {
+                throw new Error(result.error || "Failed to delete meal plan");
+            }
+            setMealPlans((prev) => prev.filter((item) => item._id !== id));
+            if (typeof window !== "undefined") {
+                window.dispatchEvent(new CustomEvent("mealplan:deleted", { detail: { id } }));
+            }
+            toast.success("Meal plan deleted.");
+        } catch (error: any) {
+            toast.error(error.message || "Failed to delete meal plan.");
+        } finally {
+            setDeletingPlanId(null);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-slate-950 px-4 py-8 text-slate-100">
@@ -71,6 +94,20 @@ export default function MealPlanPage() {
                                     <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
                                         Saved on {new Date(plan.createdAt).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
                                     </span>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleDeleteMealPlan(plan._id)}
+                                        disabled={deletingPlanId === plan._id}
+                                        className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-semibold text-rose-300 hover:bg-rose-900/20 disabled:opacity-50"
+                                        aria-label="Delete meal plan"
+                                    >
+                                        {deletingPlanId === plan._id ? (
+                                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                        ) : (
+                                            <Trash2 className="h-3.5 w-3.5" />
+                                        )}
+                                        Delete
+                                    </button>
                                 </div>
                                 <MealPlanCard {...plan} />
                             </div>
