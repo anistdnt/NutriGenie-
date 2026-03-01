@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Activity, Zap, Target, History, ChevronRight, Loader2, type LucideIcon } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { Activity, Zap, Target, History, ChevronRight, Loader2, Trash2, type LucideIcon } from "lucide-react";
 import Link from "next/link";
+import { useToast } from "@/src/components/providers/ToastProvider";
 
 interface Stats {
     avgCalories: number;
@@ -33,46 +34,138 @@ interface StatCardProps {
     iconClass: string;
 }
 
+interface MealPlanSavedEventDetail extends MealPlanLite {}
+interface MealPlanDeletedEventDetail {
+    id: string;
+}
+
 export default function StatsOverview() {
+    const toast = useToast();
     const [stats, setStats] = useState<Stats | null>(null);
     const [recentPlans, setRecentPlans] = useState<MealPlanLite[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [deletingPlanId, setDeletingPlanId] = useState<string | null>(null);
 
-    useEffect(() => {
-        const fetchDashboardData = async () => {
-            try {
-                const res = await fetch("/api/meal-plan");
-                const data = await res.json();
-                if (data.mealPlans) {
-                    const plans = data.mealPlans as MealPlanLite[];
-                    setRecentPlans(plans.slice(0, 3));
-
-                    if (plans.length > 0) {
-                        const total = plans.reduce((acc, p) => ({
+    const fetchDashboardData = useCallback(async () => {
+        try {
+            const res = await fetch("/api/meal-plan", { cache: "no-store" });
+            const data = await res.json();
+            if (data.mealPlans) {
+                const plans = data.mealPlans as MealPlanLite[];
+                setRecentPlans(plans.slice(0, 3));
+                if (plans.length > 0) {
+                    const total = plans.reduce(
+                        (acc, p) => ({
                             calories: acc.calories + p.totalNutrients.calories,
                             protein: acc.protein + p.totalNutrients.protein,
                             carbs: acc.carbs + p.totalNutrients.carbs,
                             fat: acc.fat + p.totalNutrients.fat,
-                        }), { calories: 0, protein: 0, carbs: 0, fat: 0 });
+                        }),
+                        { calories: 0, protein: 0, carbs: 0, fat: 0 }
+                    );
 
-                        setStats({
-                            avgCalories: Math.round(total.calories / plans.length),
-                            avgProtein: Math.round(total.protein / plans.length),
-                            avgCarbs: Math.round(total.carbs / plans.length),
-                            avgFat: Math.round(total.fat / plans.length),
-                            totalPlans: plans.length,
-                        });
-                    }
+                    setStats({
+                        avgCalories: Math.round(total.calories / plans.length),
+                        avgProtein: Math.round(total.protein / plans.length),
+                        avgCarbs: Math.round(total.carbs / plans.length),
+                        avgFat: Math.round(total.fat / plans.length),
+                        totalPlans: plans.length,
+                    });
+                } else {
+                    setStats(null);
                 }
-            } catch (err) {
-                console.error("Error fetching dashboard stats:", err);
-            } finally {
-                setIsLoading(false);
             }
+        } catch (err) {
+            console.error("Error fetching dashboard stats:", err);
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchDashboardData();
+    }, [fetchDashboardData]);
+
+    useEffect(() => {
+        const onMealPlanSaved = (event: Event) => {
+            const customEvent = event as CustomEvent<MealPlanSavedEventDetail>;
+            const plan = customEvent.detail;
+            if (!plan) return;
+
+            let isDuplicate = false;
+
+            setRecentPlans((prev) => {
+                isDuplicate = prev.some((item) => item._id === plan._id);
+                const next = [plan, ...prev.filter((item) => item._id !== plan._id)];
+                return next.slice(0, 3);
+            });
+
+            const nutrients = {
+                calories: plan.totalNutrients?.calories ?? 0,
+                protein: plan.totalNutrients?.protein ?? 0,
+                carbs: plan.totalNutrients?.carbs ?? 0,
+                fat: plan.totalNutrients?.fat ?? 0,
+            };
+
+            setStats((prev) => {
+                if (!prev) {
+                    return {
+                        avgCalories: Math.round(nutrients.calories),
+                        avgProtein: Math.round(nutrients.protein),
+                        avgCarbs: Math.round(nutrients.carbs),
+                        avgFat: Math.round(nutrients.fat),
+                        totalPlans: 1,
+                    };
+                }
+
+                if (isDuplicate) {
+                    return prev;
+                }
+
+                const nextCount = prev.totalPlans + 1;
+                return {
+                    avgCalories: Math.round((prev.avgCalories * prev.totalPlans + nutrients.calories) / nextCount),
+                    avgProtein: Math.round((prev.avgProtein * prev.totalPlans + nutrients.protein) / nextCount),
+                    avgCarbs: Math.round((prev.avgCarbs * prev.totalPlans + nutrients.carbs) / nextCount),
+                    avgFat: Math.round((prev.avgFat * prev.totalPlans + nutrients.fat) / nextCount),
+                    totalPlans: nextCount,
+                };
+            });
         };
 
-        fetchDashboardData();
-    }, []);
+        const onMealPlanDeleted = (event: Event) => {
+            const customEvent = event as CustomEvent<MealPlanDeletedEventDetail>;
+            if (!customEvent.detail?.id) return;
+            fetchDashboardData();
+        };
+
+        window.addEventListener("mealplan:saved", onMealPlanSaved as EventListener);
+        window.addEventListener("mealplan:deleted", onMealPlanDeleted as EventListener);
+        return () => {
+            window.removeEventListener("mealplan:saved", onMealPlanSaved as EventListener);
+            window.removeEventListener("mealplan:deleted", onMealPlanDeleted as EventListener);
+        };
+    }, [fetchDashboardData]);
+
+    const deleteMealPlan = async (id: string) => {
+        try {
+            setDeletingPlanId(id);
+            const res = await fetch(`/api/meal-plan/${id}`, { method: "DELETE" });
+            const data = await res.json();
+            if (!res.ok || !data.success) {
+                throw new Error(data.error || "Failed to delete meal plan");
+            }
+            if (typeof window !== "undefined") {
+                window.dispatchEvent(new CustomEvent("mealplan:deleted", { detail: { id } }));
+            }
+            toast.success("Meal plan deleted.");
+            await fetchDashboardData();
+        } catch (error: any) {
+            toast.error(error.message || "Failed to delete meal plan.");
+        } finally {
+            setDeletingPlanId(null);
+        }
+    };
 
     if (isLoading) {
         return (
@@ -134,17 +227,32 @@ export default function StatsOverview() {
 
                 <div className="space-y-3">
                     {recentPlans.map((plan) => (
-                        <Link
+                        <div
                             key={plan._id}
-                            href="/meal-plan"
-                            className="flex items-center justify-between p-3 rounded-2xl bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
+                            className="flex items-center justify-between gap-2 p-3 rounded-2xl bg-gray-50 dark:bg-gray-800/50 border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
                         >
-                            <div className="flex-1 min-w-0">
+                            <Link href="/meal-plan" className="flex-1 min-w-0">
                                 <h4 className="text-[12px] font-bold text-gray-900 dark:text-white truncate">{plan.title}</h4>
                                 <p className="text-[10px] text-gray-500 mt-0.5">{new Date(plan.createdAt).toLocaleDateString()}</p>
-                            </div>
-                            <ChevronRight className="w-4 h-4 text-gray-300 flex-shrink-0" />
-                        </Link>
+                            </Link>
+                            <Link href="/meal-plan" className="text-gray-300 hover:text-gray-400">
+                                <ChevronRight className="w-4 h-4 flex-shrink-0" />
+                            </Link>
+                            <button
+                                type="button"
+                                onClick={() => deleteMealPlan(plan._id)}
+                                disabled={deletingPlanId === plan._id}
+                                className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50"
+                                aria-label="Delete meal plan"
+                                title="Delete meal plan"
+                            >
+                                {deletingPlanId === plan._id ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                    <Trash2 className="w-4 h-4" />
+                                )}
+                            </button>
+                        </div>
                     ))}
                 </div>
             </div>

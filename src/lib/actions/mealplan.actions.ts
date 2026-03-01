@@ -3,8 +3,8 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/src/lib/auth/auth-options";
 import { connectDB } from "@/src/lib/db/mongo";
+import { findUserByEmailInsensitive, getOrCreateUserByEmail } from "@/src/lib/db/user";
 import MealPlan from "@/src/models/MealPlan";
-import User from "@/src/models/User";
 import { revalidatePath } from "next/cache";
 
 export async function saveMealPlan(data: any) {
@@ -16,10 +16,13 @@ export async function saveMealPlan(data: any) {
 
     try {
         await connectDB();
-        const user = await User.findOne({ email: session.user.email });
-
+        let user = await findUserByEmailInsensitive(session.user.email);
         if (!user) {
-            return { success: false, error: "User not found" };
+            user = await getOrCreateUserByEmail(
+                session.user.email,
+                session.user.name,
+                session.user.image
+            );
         }
 
         const newMealPlan = await MealPlan.create({
@@ -28,7 +31,16 @@ export async function saveMealPlan(data: any) {
         });
 
         revalidatePath("/dashboard");
-        return { success: true, id: newMealPlan._id.toString() };
+        revalidatePath("/meal-plan");
+        revalidatePath("/profile");
+        return {
+            success: true,
+            id: newMealPlan._id.toString(),
+            mealPlan: {
+                ...JSON.parse(JSON.stringify(newMealPlan)),
+                _id: newMealPlan._id.toString(),
+            },
+        };
     } catch (error: any) {
         console.error("Error saving meal plan:", error);
         return { success: false, error: error.message || "Failed to save meal plan" };
@@ -44,8 +56,7 @@ export async function getSavedMealPlans() {
 
     try {
         await connectDB();
-        const user = await User.findOne({ email: session.user.email });
-
+        const user = await findUserByEmailInsensitive(session.user.email);
         if (!user) return [];
 
         const plans = await MealPlan.find({ userId: user._id }).sort({ createdAt: -1 });

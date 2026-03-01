@@ -4,8 +4,8 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/src/lib/auth/auth-options";
 import { z } from "zod";
 import { connectDB } from "@/src/lib/db/mongo";
+import { findUserByEmailInsensitive, getOrCreateUserByEmail } from "@/src/lib/db/user";
 import MealPlan from "@/src/models/MealPlan";
-import User from "@/src/models/User";
 import Chat from "@/src/models/Chat";
 
 export const runtime = "nodejs";
@@ -119,7 +119,7 @@ export async function GET(req: Request) {
         if (!session?.user?.email) return new Response("Unauthorized", { status: 401 });
 
         await connectDB();
-        const user = await User.findOne({ email: session.user.email });
+        const user = await findUserByEmailInsensitive(session.user.email);
         if (!user) return new Response("User not found", { status: 404 });
 
         const url = new URL(req.url);
@@ -205,7 +205,10 @@ Never expose internal tool names, function names, or JSON arguments in user-faci
 If you use tools, do it silently and present clean, natural language results.
 When a user explicitly asks for a meal plan, call the generateMealPlan tool.
 When a user explicitly asks for recipe/cooking instructions, call the getRecipeDetails tool.
-For other health questions, respond conversationally with safe guidance.`;
+For other health questions, respond conversationally with safe guidance.
+If the user profile contains constraints/preferences/goals (allergies, medical conditions, medications, dietary restrictions, goals, activity level, calorie/weight targets, food/cuisine preference, age, gender, height), you MUST honor them in your recommendations.
+If profile fields are missing, proceed with best-practice defaults and clearly mention assumptions.
+Never suggest foods or plans that conflict with known profile restrictions/allergies.`;
 
         if (healthContext) {
             systemPrompt += `\n\nUser Profile: ${JSON.stringify(healthContext)}`;
@@ -244,7 +247,11 @@ For other health questions, respond conversationally with safe guidance.`;
                     execute: async (params) => {
                         try {
                             await connectDB();
-                            const user = await User.findOne({ email: session.user.email });
+                            const user = await getOrCreateUserByEmail(
+                                session.user.email!,
+                                session.user.name,
+                                session.user.image
+                            );
                             if (user) {
                                 await MealPlan.create({
                                     userId: user._id,
@@ -287,10 +294,11 @@ For other health questions, respond conversationally with safe guidance.`;
         }
 
         await connectDB();
-        const user = await User.findOne({ email: session.user.email });
-        if (!user) {
-            return new Response("User not found", { status: 404 });
-        }
+        const user = await getOrCreateUserByEmail(
+            session.user.email,
+            session.user.name,
+            session.user.image
+        );
 
         let chatThread = null;
         if (body.threadId) {
@@ -379,7 +387,7 @@ export async function PATCH(req: Request) {
         }
 
         await connectDB();
-        const user = await User.findOne({ email: session.user.email });
+        const user = await findUserByEmailInsensitive(session.user.email);
         if (!user) return new Response("User not found", { status: 404 });
 
         const updated = await Chat.findOneAndUpdate(

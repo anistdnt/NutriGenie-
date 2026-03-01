@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { saveMealPlan } from "@/src/lib/actions/mealplan.actions";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/src/components/providers/ToastProvider";
 
 interface Meal {
     name: string;
@@ -67,6 +68,8 @@ function MealItem({ type, meal }: { type: string; meal?: Meal }) {
 }
 
 export default function MealPlanCard({ title, description, meals, totalNutrients }: MealPlanProps) {
+    const router = useRouter();
+    const toast = useToast();
     const [isSaving, setIsSaving] = useState(false);
     const [isSaved, setIsSaved] = useState(false);
     const rawSnacks = Array.isArray(meals?.snacks) ? meals.snacks : [];
@@ -94,18 +97,42 @@ export default function MealPlanCard({ title, description, meals, totalNutrients
     const safeTitle = title?.trim() || "Personalized Meal Plan";
 
     const handleSave = async () => {
-        setIsSaving(true);
-        const result = await saveMealPlan({
-            title: safeTitle,
-            description,
-            meals: safeMeals,
-            totalNutrients: safeTotals,
-        });
-        setIsSaving(false);
-        if (result.success) {
+        try {
+            setIsSaving(true);
+            const response = await fetch("/api/meal-plan", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    title: safeTitle,
+                    description,
+                    meals: safeMeals,
+                    totalNutrients: safeTotals,
+                }),
+            });
+
+            const result = await response.json();
+            if (!response.ok || !result?.success) {
+                throw new Error(result?.error || "Failed to save meal plan");
+            }
+
             setIsSaved(true);
-        } else {
-            alert("Failed to save meal plan: " + result.error);
+            toast.success("Meal plan saved to your library.");
+            if (typeof window !== "undefined") {
+                const detail = result.mealPlan ?? {
+                    _id: crypto.randomUUID(),
+                    title: safeTitle,
+                    description,
+                    meals: safeMeals,
+                    totalNutrients: safeTotals,
+                    createdAt: new Date().toISOString(),
+                };
+                window.dispatchEvent(new CustomEvent("mealplan:saved", { detail }));
+            }
+            router.refresh();
+        } catch (error: any) {
+            toast.error(error.message || "Failed to save meal plan.");
+        } finally {
+            setIsSaving(false);
         }
     };
     
