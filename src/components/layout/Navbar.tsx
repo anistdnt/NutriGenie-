@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { signOut, useSession } from "next-auth/react";
 import { cn } from "@/src/lib/utils";
 
@@ -12,7 +13,15 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <Link href="/dashboard" className="flex items-center gap-3 group">
-            <span className="grid place-items-center w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-300 text-sm font-bold">NG</span>
+            <span className="grid place-items-center w-9 h-9 overflow-hidden rounded-lg border border-emerald-300/35 bg-gradient-to-br from-emerald-400/30 via-cyan-400/25 to-teal-500/30 shadow-[0_0_20px_rgba(45,212,191,0.55)] transition-all duration-300 group-hover:shadow-[0_0_28px_rgba(45,212,191,0.8)]">
+              <Image
+                src="/logo.png"
+                alt="NutriGenie logo"
+                width={36}
+                height={36}
+                className="h-8 w-8 object-cover brightness-110 saturate-125 drop-shadow-[0_0_8px_rgba(45,212,191,0.85)]"
+              />
+            </span>
             <span className="font-bold text-xl bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent group-hover:opacity-80 transition-opacity">
               NutriGenie
             </span>

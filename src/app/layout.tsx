@@ -17,7 +17,15 @@ export const metadata: Metadata = {
   title: "NutriGenie | Your Personal Meal Planner",
   description: "AI-powered personalized meal planning and nutrition tracking.",
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: "/favicon.ico", type: "image/x-icon" },
+      { url: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },
+      { url: "/icon.png", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", type: "image/png", sizes: "180x180" },
+    ],
+    shortcut: ["/favicon.ico"],
   },
 };
 
