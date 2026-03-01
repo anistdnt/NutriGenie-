@@ -18,7 +18,7 @@ Core user flow:
 
 NutriGenie currently includes:
 1. Authentication with NextAuth (credentials + provider support in config).
-2. Protected application routes (`/dashboard`, `/profile`, `/meal-plan`, `/health-profile`, `/onboarding`).
+2. Protected application routes (`/dashboard`, `/profile`, `/meal-plan`, `/onboarding`).
 3. AI chat endpoint with tool-based behavior for meal plan and recipe flows.
 4. MongoDB persistence for users, chats, and meal plans.
 5. Health/profile-driven personalization context used by AI workflows.
@@ -78,15 +78,20 @@ src/
 
 ## Environment Variables
 
-Create `.env.local`:
+Create `.env.local` from a local template and never commit real secrets:
 
 ```env
-MONGODB_URI=your_mongodb_connection_string
-NEXTAUTH_SECRET=your_nextauth_secret
-NEXTAUTH_URL=http://localhost:3000
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
+MONGODB_URI=<REQUIRED>
+NEXTAUTH_SECRET=<REQUIRED>
+NEXTAUTH_URL=<REQUIRED>
+GOOGLE_CLIENT_ID=<REQUIRED>
+GOOGLE_CLIENT_SECRET=<REQUIRED>
 ```
+
+Important:
+1. Do not put actual secret values in `README.md`.
+2. Do not commit `.env.local`.
+3. Rotate credentials immediately if any secret was ever exposed in git history.
 
 For Vercel, set these in Project Settings for the correct environments (Production/Preview/Development).
 
@@ -115,4 +120,3 @@ NutriGenie is configured for server-side MongoDB and NextAuth usage:
 
 - Architecture details: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - Project roadmap/status: [docs/PROJECT_STATUS_REPORT.md](docs/PROJECT_STATUS_REPORT.md)
-
