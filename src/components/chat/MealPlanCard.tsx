@@ -108,6 +108,7 @@ export default function MealPlanCard({ title, description, meals, totalNutrients
             alert("Failed to save meal plan: " + result.error);
         }
     };
+    
 
     return (
         <div className="my-4 w-full bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
