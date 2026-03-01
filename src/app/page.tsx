@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Sora, Manrope } from "next/font/google";
 import { ArrowRight, Bot, ChartSpline, ShieldCheck, UtensilsCrossed } from "lucide-react";
 
@@ -40,8 +41,8 @@ export default function Home() {
       <div className="mx-auto max-w-7xl px-6 py-10 md:px-10">
         <header className="mb-14 flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-900/70 px-5 py-3 shadow-sm backdrop-blur">
           <div className="flex items-center gap-3">
-            <div className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-500/20 text-emerald-300 font-bold">
-              NG
+            <div className="grid h-10 w-10 place-items-center overflow-hidden rounded-xl bg-emerald-500/20">
+              <Image src="/logo.png" alt="NutriGenie logo" width={40} height={40} className="h-10 w-10 object-cover" />
             </div>
             <div>
               <p className={`${sora.className} text-lg font-semibold`}>NutriGenie</p>
