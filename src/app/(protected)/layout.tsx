@@ -4,7 +4,7 @@ import OnboardingGuard from "@/src/components/auth/OnboardingGuard";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/src/lib/auth/auth-options";
 import { connectDB } from "@/src/lib/db/mongo";
-import User from "@/src/models/User";
+import { getOrCreateUserByEmail } from "@/src/lib/db/user";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -19,7 +19,11 @@ export default async function ProtectedLayout({
 
   if (session?.user?.email) {
     await connectDB();
-    const user = await User.findOne({ email: session.user.email }).select("age height gender");
+    const user = await getOrCreateUserByEmail(
+      session.user.email,
+      session.user.name,
+      session.user.image
+    );
     isProfileComplete = !!(user?.age && user?.height && user?.gender);
   }
 

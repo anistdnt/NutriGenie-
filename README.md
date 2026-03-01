@@ -1,84 +1,118 @@
-# NutriGenie 🥗
+# NutriGenie
 
-**NutriGenie** is a modern nutritional management platform built with **Next.js 16** and **MongoDB**. It provides personalized meal planning and dietary tracking.
+NutriGenie is a full-stack AI health and nutrition web application built with Next.js.
+It helps users move from generic diet advice to personalized, practical, and trackable nutrition planning.
 
-## Technical Architecture
+## What NutriGenie Does
 
-NutriGenie leverages a modern monolithic architecture within the Next.js App Router paradigm.
+NutriGenie combines secure user data, AI guidance, and meal planning tools into one platform.
 
--   **Frontend**: React Server Components (RSC) by default, with client boundaries for interactivity (forms, auth state).
--   **Backend**: Server Actions and API Routes integrated directly within the Next.js framework.
--   **Database**: MongoDB (NoSQL) with Mongoose ODM for schema validation.
--   **Authentication**: NextAuth.js (v4) handling session management via JWTs and MongoDB storage.
+Core user flow:
+1. User signs up or logs in.
+2. User completes health profile data (goals, preferences, basic health context).
+3. User chats with AI coach "Dr. Genie" for guidance.
+4. User receives personalized meal plans and recipe-oriented responses.
+5. User reviews plans and profile in protected dashboard pages.
 
-For a detailed architecture breakdown, please see [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md).
+## Product Scope
+
+NutriGenie currently includes:
+1. Authentication with NextAuth (credentials + provider support in config).
+2. Protected application routes (`/dashboard`, `/profile`, `/meal-plan`, `/health-profile`, `/onboarding`).
+3. AI chat endpoint with tool-based behavior for meal plan and recipe flows.
+4. MongoDB persistence for users, chats, and meal plans.
+5. Health/profile-driven personalization context used by AI workflows.
+
+## Feature Breakdown
+
+### 1. Auth and Access Control
+- NextAuth session management.
+- JWT-based route protection through `proxy.ts`.
+- Protected layouts and API authorization checks.
+
+### 2. AI Chat and Nutrition Assistant
+- Chat API (`/api/chat`) handles conversational nutrition support.
+- Tool-driven responses for:
+  - Meal plan generation.
+  - Recipe details and structured nutrition outputs.
+- Threaded chat history persistence in MongoDB.
+
+### 3. Meal Planning and Profile Data
+- Meal plan APIs and data models for daily planning and history.
+- User profile APIs for account and health data retrieval.
+- Health context is used to personalize AI responses.
+
+### 4. Frontend Experience
+- Next.js App Router with server-first rendering and client components where needed.
+- Tailwind CSS v4 styling.
+- Dashboard and auth flows designed for direct usability.
 
 ## Tech Stack
 
--   **Framework**: Next.js 16.1.4 (App Router)
--   **Language**: TypeScript 5.x
--   **Styling**: Tailwind CSS 4
--   **Database**: MongoDB + Mongoose
--   **Authentication**: NextAuth.js
--   **Validation**: Zod + React Hook Form
+- Framework: Next.js 16 (App Router)
+- Language: TypeScript
+- Database: MongoDB + Mongoose
+- Auth: NextAuth.js
+- AI SDK: `ai`, `@ai-sdk/openai`, `@ai-sdk/react`
+- Validation/Form: Zod + React Hook Form
+- Styling: Tailwind CSS v4
 
 ## Project Structure
 
-```bash
-nutrigenie/
-├── src/
-│   ├── app/                # Next.js App Router pages
-│   │   ├── (auth)/         # Public authentication routes
-│   │   ├── (protected)/    # Protected dashboard routes
-│   │   ├── api/            # API endpoints (Auth, etc.)
-│   │   └── layout.tsx      # Root layout
-│   ├── components/         # React components
-│   ├── lib/                # Shared utilities & configs
-│   │   ├── auth/           # NextAuth configuration
-│   │   ├── db/             # Database connection logic
-│   │   └── validators/     # Zod schemas
-│   ├── models/             # Mongoose data models
-│   └── middleware.ts       # Route protection middleware
-├── public/                 # Static assets
-└── ...config files         # Tooling configuration
+```text
+src/
+  app/
+    (auth)/              public auth pages
+    (protected)/         authenticated app pages
+    api/                 route handlers (auth, chat, profile, meal plans)
+  components/            UI and feature components
+  lib/
+    ai/                  AI config and prompts
+    auth/                NextAuth options and auth helpers
+    db/                  MongoDB/Mongoose connection utilities
+    actions/             server actions and data operations
+    validators/          Zod schemas
+  models/                Mongoose models (User, Chat, MealPlan)
+  proxy.ts               route access guard
 ```
 
-## Getting Started
+## Environment Variables
 
-1.  **Clone the repository**:
-    ```bash
-    git clone https://github.com/your-username/nutrigenie.git
-    cd nutrigenie
-    ```
+Create `.env.local`:
 
-2.  **Install dependencies**:
-    ```bash
-    npm install
-    # or
-    pnpm install
-    ```
+```env
+MONGODB_URI=your_mongodb_connection_string
+NEXTAUTH_SECRET=your_nextauth_secret
+NEXTAUTH_URL=http://localhost:3000
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+```
 
-3.  **Environment Setup**:
-    Create a `.env.local` file in the root:
-    ```env
-    MONGODB_URI=your_mongodb_connection_string
-    NEXTAUTH_SECRET=your_nextauth_secret
-    NEXTAUTH_URL=http://localhost:3000
-    GOOGLE_CLIENT_ID=your_google_client_id
-    GOOGLE_CLIENT_SECRET=your_google_client_secret
-    ```
+For Vercel, set these in Project Settings for the correct environments (Production/Preview/Development).
 
-4.  **Run Development Server**:
-    ```bash
-    npm run dev
-    ```
+## Run Locally
 
-5.  **Open Browser**:
-    Visit [http://localhost:3000](http://localhost:3000).
+```bash
+npm install
+npm run dev
+```
 
-## Contributing
+Build check:
 
-Please follow the coding standards outlined in the documentation.
--   Use **strict mode** TypeScript.
--   Use **Tailwind CSS** for styling.
--   Commit messages should follow conventional commits.
+```bash
+npm run build
+```
+
+## Deployment Notes
+
+NutriGenie is configured for server-side MongoDB and NextAuth usage:
+1. Required runtime dependencies are in `package.json` (`mongoose`, `next-auth`).
+2. Database/auth routes export `runtime = "nodejs"`.
+3. Route protection uses `proxy.ts` (Next.js 16 convention).
+4. Mongo DB connection code is server-only and uses connection caching.
+
+## Documentation
+
+- Architecture details: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- Project roadmap/status: [docs/PROJECT_STATUS_REPORT.md](docs/PROJECT_STATUS_REPORT.md)
+

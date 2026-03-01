@@ -3,7 +3,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/src/lib/auth/auth-options";
 import { connectDB } from "@/src/lib/db/mongo";
-import User from "@/src/models/User";
+import { findUserByEmailInsensitive, getOrCreateUserByEmail } from "@/src/lib/db/user";
 import { healthProfileSchema, HealthProfileInput } from "@/src/lib/validators/health.schema";
 
 export async function updateHealthProfile(data: HealthProfileInput) {
@@ -18,19 +18,20 @@ export async function updateHealthProfile(data: HealthProfileInput) {
 
         await connectDB();
 
-        const updatedUser = await User.findOneAndUpdate(
-            { email: session.user.email },
-            {
-                ...validated,
-                healthProfileCompleted: true,
-                lastProfileUpdate: new Date(),
-            },
-            { new: true }
-        );
-
+        let updatedUser = await findUserByEmailInsensitive(session.user.email);
         if (!updatedUser) {
-            return { success: false, error: "User not found" };
+            updatedUser = await getOrCreateUserByEmail(
+                session.user.email,
+                session.user.name,
+                session.user.image
+            );
         }
+        updatedUser.set({
+            ...validated,
+            healthProfileCompleted: true,
+            lastProfileUpdate: new Date(),
+        });
+        await updatedUser.save();
 
         return { success: true };
     } catch (error: any) {
@@ -43,9 +44,7 @@ export async function getHealthContext(email: string) {
     try {
         await connectDB();
 
-        const user = await User.findOne({ email }).select(
-            "name age gender allergies medicalConditions medications dietaryRestrictions healthGoals activityLevel targetCalories targetWeight foodPreference"
-        );
+        const user = await findUserByEmailInsensitive(email);
 
         if (!user) return null;
 
@@ -54,6 +53,7 @@ export async function getHealthContext(email: string) {
             name: user.name,
             age: user.age,
             gender: user.gender,
+            height: user.height,
             allergies: user.allergies || [],
             medicalConditions: user.medicalConditions || [],
             medications: user.medications || [],
@@ -63,6 +63,7 @@ export async function getHealthContext(email: string) {
             targetCalories: user.targetCalories,
             targetWeight: user.targetWeight,
             foodPreference: user.foodPreference,
+            cuisinePreference: user.cuisinePreference,
         };
     } catch (error) {
         console.error("Error fetching health context:", error);

@@ -8,6 +8,24 @@ import { OnboardingInput, onboardingSchema } from "@/src/lib/validators/user.sch
 import { updateUserProfile } from "@/src/lib/actions/user.actions";
 import { useSession } from "next-auth/react";
 
+const GENDER_OPTIONS: Array<{ value: OnboardingInput["gender"]; label: string }> = [
+    { value: "male", label: "Male" },
+    { value: "female", label: "Female" },
+    { value: "other", label: "Other" },
+];
+
+const FOOD_OPTIONS: Array<{ value: OnboardingInput["foodPreference"]; label: string }> = [
+    { value: "veg", label: "Veg" },
+    { value: "non-veg", label: "Non-Veg" },
+    { value: "vegan", label: "Vegan" },
+];
+
+const CUISINE_OPTIONS: Array<{ value: OnboardingInput["cuisinePreference"]; label: string }> = [
+    { value: "indian", label: "Indian" },
+    { value: "western", label: "Western" },
+    { value: "mixed", label: "Mixed" },
+];
+
 export default function OnboardingPage() {
     const router = useRouter();
     const { update } = useSession();
@@ -16,10 +34,16 @@ export default function OnboardingPage() {
     const {
         register,
         handleSubmit,
+        setValue,
+        watch,
         formState: { errors, isSubmitting },
     } = useForm<OnboardingInput>({
         resolver: zodResolver(onboardingSchema) as never,
     });
+
+    const selectedGender = watch("gender");
+    const selectedFood = watch("foodPreference");
+    const selectedCuisine = watch("cuisinePreference");
 
     const onSubmit = async (data: OnboardingInput) => {
         setError("");
@@ -90,15 +114,26 @@ export default function OnboardingPage() {
                         <label className="block text-sm font-medium text-slate-300 mb-1">
                             Gender
                         </label>
-                        <select
-                            {...register("gender")}
-                            className="w-full border border-slate-700 bg-slate-950 rounded-xl p-3 focus:ring-2 focus:ring-emerald-500/40 outline-none"
-                        >
-                            <option value="">Select gender</option>
-                            <option value="male">Male</option>
-                            <option value="female">Female</option>
-                            <option value="other">Other</option>
-                        </select>
+                        <input type="hidden" {...register("gender")} />
+                        <div className="grid grid-cols-3 gap-3">
+                            {GENDER_OPTIONS.map((option) => {
+                                const isSelected = selectedGender === option.value;
+                                return (
+                                    <button
+                                        key={option.value}
+                                        type="button"
+                                        onClick={() => setValue("gender", option.value, { shouldDirty: true, shouldValidate: true })}
+                                        className={`rounded-xl border px-3 py-3 text-sm font-semibold transition ${
+                                            isSelected
+                                                ? "border-emerald-400/70 bg-emerald-500/20 text-emerald-200 shadow-[0_0_20px_rgba(16,185,129,0.25)]"
+                                                : "border-slate-700 bg-slate-950 text-slate-200 hover:border-emerald-500/50"
+                                        }`}
+                                    >
+                                        {option.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
                         {errors.gender && (
                             <p className="text-sm text-rose-400 mt-1">
                                 {errors.gender.message}
@@ -110,21 +145,25 @@ export default function OnboardingPage() {
                         <label className="block text-sm font-medium text-slate-300 mb-1">
                             Dietary Preference
                         </label>
+                        <input type="hidden" {...register("foodPreference")} />
                         <div className="grid grid-cols-3 gap-3">
-                            {["veg", "non-veg", "vegan"].map((type) => (
-                                <label
-                                    key={type}
-                                    className="flex items-center justify-center space-x-2 border border-slate-700 bg-slate-950 p-3 rounded-xl cursor-pointer hover:border-emerald-500/50"
-                                >
-                                    <input
-                                        type="radio"
-                                        value={type}
-                                        {...register("foodPreference")}
-                                        className="text-emerald-500 focus:ring-emerald-500"
-                                    />
-                                    <span className="capitalize text-sm">{type}</span>
-                                </label>
-                            ))}
+                            {FOOD_OPTIONS.map((option) => {
+                                const isSelected = selectedFood === option.value;
+                                return (
+                                    <button
+                                        key={option.value}
+                                        type="button"
+                                        onClick={() => setValue("foodPreference", option.value, { shouldDirty: true, shouldValidate: true })}
+                                        className={`rounded-xl border px-3 py-3 text-sm font-semibold transition ${
+                                            isSelected
+                                                ? "border-emerald-400/70 bg-emerald-500/20 text-emerald-200 shadow-[0_0_20px_rgba(16,185,129,0.25)]"
+                                                : "border-slate-700 bg-slate-950 text-slate-200 hover:border-emerald-500/50"
+                                        }`}
+                                    >
+                                        {option.label}
+                                    </button>
+                                );
+                            })}
                         </div>
                         {errors.foodPreference && (
                             <p className="text-sm text-rose-400 mt-1">
@@ -137,15 +176,26 @@ export default function OnboardingPage() {
                         <label className="block text-sm font-medium text-slate-300 mb-1">
                             Preferred Cuisine
                         </label>
-                        <select
-                            {...register("cuisinePreference")}
-                            className="w-full border border-slate-700 bg-slate-950 rounded-xl p-3 focus:ring-2 focus:ring-emerald-500/40 outline-none"
-                        >
-                            <option value="">Select cuisine</option>
-                            <option value="indian">Indian</option>
-                            <option value="western">Western</option>
-                            <option value="mixed">Mixed</option>
-                        </select>
+                        <input type="hidden" {...register("cuisinePreference")} />
+                        <div className="grid grid-cols-3 gap-3">
+                            {CUISINE_OPTIONS.map((option) => {
+                                const isSelected = selectedCuisine === option.value;
+                                return (
+                                    <button
+                                        key={option.value}
+                                        type="button"
+                                        onClick={() => setValue("cuisinePreference", option.value, { shouldDirty: true, shouldValidate: true })}
+                                        className={`rounded-xl border px-3 py-3 text-sm font-semibold transition ${
+                                            isSelected
+                                                ? "border-emerald-400/70 bg-emerald-500/20 text-emerald-200 shadow-[0_0_20px_rgba(16,185,129,0.25)]"
+                                                : "border-slate-700 bg-slate-950 text-slate-200 hover:border-emerald-500/50"
+                                        }`}
+                                    >
+                                        {option.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
                         {errors.cuisinePreference && (
                             <p className="text-sm text-rose-400 mt-1">
                                 {errors.cuisinePreference.message}
