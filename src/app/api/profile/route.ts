@@ -4,6 +4,8 @@ import { authOptions } from "@/src/lib/auth/auth-options";
 import { connectDB } from "@/src/lib/db/mongo";
 import User from "@/src/models/User";
 
+export const runtime = "nodejs";
+
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
