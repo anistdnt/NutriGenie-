@@ -39,7 +39,12 @@ interface MealPlanDeletedEventDetail {
     id: string;
 }
 
-export default function StatsOverview() {
+interface StatsOverviewProps {
+    section?: "all" | "plans" | "vitals";
+    compact?: boolean;
+}
+
+export default function StatsOverview({ section = "all", compact = false }: StatsOverviewProps) {
     const toast = useToast();
     const [stats, setStats] = useState<Stats | null>(null);
     const [recentPlans, setRecentPlans] = useState<MealPlanLite[]>([]);
@@ -167,6 +172,10 @@ export default function StatsOverview() {
         }
     };
 
+    const showVitals = section === "all" || section === "vitals";
+    const showPlans = section === "all" || section === "plans";
+    const showMotivation = section === "all" || section === "vitals";
+
     if (isLoading) {
         return (
             <div className="flex items-center justify-center p-8 h-full">
@@ -203,72 +212,74 @@ export default function StatsOverview() {
     );
 
     return (
-        <div className="space-y-6">
-            {/* Quick Stats Grid */}
-            <div className="grid grid-cols-2 gap-3">
-                <StatCard icon={Zap} label="Avg. Calories" value={stats.avgCalories} unit="kcal" badgeClass="bg-orange-500/20" iconClass="text-orange-500" />
-                <StatCard icon={Target} label="Avg. Protein" value={stats.avgProtein} unit="g" badgeClass="bg-blue-500/20" iconClass="text-blue-500" />
-                <StatCard icon={Activity} label="Avg. Carbs" value={stats.avgCarbs} unit="g" badgeClass="bg-green-500/20" iconClass="text-green-500" />
-                <StatCard icon={Target} label="Avg. Fat" value={stats.avgFat} unit="g" badgeClass="bg-purple-500/20" iconClass="text-purple-500" />
-            </div>
-
-            {/* Recent History */}
-            <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm">
-                <div className="flex justify-between items-center mb-4 px-1">
-                    <h3 className="text-sm font-black text-gray-900 dark:text-white flex items-center gap-2">
-                        <History className="w-4 h-4 text-green-600" />
-                        Recent Plans
-                    </h3>
-                    <Link href="/meal-plan" className="text-[10px] font-bold text-green-600 hover:underline uppercase tracking-wider">
-                        View All
-                    </Link>
+        <div className={compact ? "space-y-4" : "space-y-6"}>
+            {showVitals && (
+                <div className="grid grid-cols-2 gap-3">
+                    <StatCard icon={Zap} label="Avg. Calories" value={stats.avgCalories} unit="kcal" badgeClass="bg-orange-500/20" iconClass="text-orange-500" />
+                    <StatCard icon={Target} label="Avg. Protein" value={stats.avgProtein} unit="g" badgeClass="bg-blue-500/20" iconClass="text-blue-500" />
+                    <StatCard icon={Activity} label="Avg. Carbs" value={stats.avgCarbs} unit="g" badgeClass="bg-green-500/20" iconClass="text-green-500" />
+                    <StatCard icon={Target} label="Avg. Fat" value={stats.avgFat} unit="g" badgeClass="bg-purple-500/20" iconClass="text-purple-500" />
                 </div>
-                
+            )}
 
-                <div className="space-y-3">
-                    {recentPlans.map((plan) => (
-                        <div
-                            key={plan._id}
-                            className="flex items-center justify-between gap-2 p-3 rounded-2xl bg-gray-50 dark:bg-gray-800/50 border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
-                        >
-                            <Link href="/meal-plan" className="flex-1 min-w-0">
-                                <h4 className="text-[12px] font-bold text-gray-900 dark:text-white truncate">{plan.title}</h4>
-                                <p className="text-[10px] text-gray-500 mt-0.5">{new Date(plan.createdAt).toLocaleDateString()}</p>
-                            </Link>
-                            <Link href="/meal-plan" className="text-gray-300 hover:text-gray-400">
-                                <ChevronRight className="w-4 h-4 flex-shrink-0" />
-                            </Link>
-                            <button
-                                type="button"
-                                onClick={() => deleteMealPlan(plan._id)}
-                                disabled={deletingPlanId === plan._id}
-                                className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50"
-                                aria-label="Delete meal plan"
-                                title="Delete meal plan"
+            {showPlans && (
+                <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm">
+                    <div className="flex justify-between items-center mb-4 px-1">
+                        <h3 className="text-sm font-black text-gray-900 dark:text-white flex items-center gap-2">
+                            <History className="w-4 h-4 text-green-600" />
+                            Recent Plans
+                        </h3>
+                        <Link href="/meal-plan" className="text-[10px] font-bold text-green-600 hover:underline uppercase tracking-wider">
+                            View All
+                        </Link>
+                    </div>
+
+                    <div className="space-y-3">
+                        {recentPlans.map((plan) => (
+                            <div
+                                key={plan._id}
+                                className="flex items-center justify-between gap-2 p-3 rounded-2xl bg-gray-50 dark:bg-gray-800/50 border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
                             >
-                                {deletingPlanId === plan._id ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : (
-                                    <Trash2 className="w-4 h-4" />
-                                )}
-                            </button>
-                        </div>
-                    ))}
+                                <Link href="/meal-plan" className="flex-1 min-w-0">
+                                    <h4 className="text-[12px] font-bold text-gray-900 dark:text-white truncate">{plan.title}</h4>
+                                    <p className="text-[10px] text-gray-500 mt-0.5">{new Date(plan.createdAt).toLocaleDateString()}</p>
+                                </Link>
+                                <Link href="/meal-plan" className="text-gray-300 hover:text-gray-400">
+                                    <ChevronRight className="w-4 h-4 flex-shrink-0" />
+                                </Link>
+                                <button
+                                    type="button"
+                                    onClick={() => deleteMealPlan(plan._id)}
+                                    disabled={deletingPlanId === plan._id}
+                                    className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50"
+                                    aria-label="Delete meal plan"
+                                    title="Delete meal plan"
+                                >
+                                    {deletingPlanId === plan._id ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                        <Trash2 className="w-4 h-4" />
+                                    )}
+                                </button>
+                            </div>
+                        ))}
+                    </div>
                 </div>
-            </div>
+            )}
 
-            {/* Motivation card */}
-            <div className="bg-gradient-to-br from-green-600 to-teal-500 p-5 rounded-3xl text-white shadow-lg shadow-green-500/20">
-                <p className="text-[11px] font-bold uppercase tracking-widest opacity-80 mb-2">Health Record</p>
-                <h4 className="text-lg font-black leading-tight mb-3">You have generated {stats.totalPlans} meal plans!</h4>
-                <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-                    <div
-                        className="h-full bg-white transition-all duration-1000"
-                        style={{ width: `${Math.min(100, (stats.totalPlans / 10) * 100)}%` }}
-                    />
+            {showMotivation && (
+                <div className="bg-gradient-to-br from-green-600 to-teal-500 p-5 rounded-3xl text-white shadow-lg shadow-green-500/20">
+                    <p className="text-[11px] font-bold uppercase tracking-widest opacity-80 mb-2">Health Record</p>
+                    <h4 className="text-lg font-black leading-tight mb-3">You have generated {stats.totalPlans} meal plans!</h4>
+                    <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+                        <div
+                            className="h-full bg-white transition-all duration-1000"
+                            style={{ width: `${Math.min(100, (stats.totalPlans / 10) * 100)}%` }}
+                        />
+                    </div>
+                    <p className="text-[10px] mt-2 font-medium opacity-90">{stats.totalPlans < 10 ? `${10 - stats.totalPlans} more to reach Bronze Level.` : "Gold Level achieved!"}</p>
                 </div>
-                <p className="text-[10px] mt-2 font-medium opacity-90">{stats.totalPlans < 10 ? `${10 - stats.totalPlans} more to reach Bronze Level.` : "Gold Level achieved!"}</p>
-            </div>
+            )}
         </div>
     );
 }
