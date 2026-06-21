@@ -161,6 +161,41 @@ function asRecipePayload(value: unknown): React.ComponentProps<typeof RecipeCard
     };
 }
 
+function stripCodeFence(text: string) {
+    return text
+        .trim()
+        .replace(/^```(?:json)?\s*/i, "")
+        .replace(/\s*```$/i, "")
+        .trim();
+}
+
+function parseSerializedToolCall(text?: string): ChatToolCall | null {
+    if (!text) return null;
+    const cleaned = stripCodeFence(text);
+    if (!cleaned.startsWith("[") && !cleaned.startsWith("{")) return null;
+
+    try {
+        const parsed = JSON.parse(cleaned) as unknown;
+        const candidate = Array.isArray(parsed) ? parsed[0] : parsed;
+        if (!isRecord(candidate)) return null;
+
+        const toolName =
+            typeof candidate.name === "string"
+                ? candidate.name
+                : typeof candidate.toolName === "string"
+                    ? candidate.toolName
+                    : "";
+        const input = candidate.parameters ?? candidate.input ?? candidate.args;
+
+        if (toolName !== "generateMealPlan" && toolName !== "getRecipeDetails") return null;
+        if (!isRecord(input)) return null;
+
+        return { toolName, input, output: input };
+    } catch {
+        return null;
+    }
+}
+
 function formatThreadTimestamp(value?: string) {
     if (!value) return "New chat";
     const parsed = new Date(value);
@@ -404,7 +439,7 @@ export default function ChatWindow() {
 
             <aside
                 ref={threadSidebarRef}
-                className="relative z-10 hidden shrink-0 border-r border-white/6 bg-[#141c30]/95 backdrop-blur-xl md:flex md:flex-col"
+                className="no-scrollbar relative z-10 hidden shrink-0 overflow-y-auto overscroll-contain border-r border-white/6 bg-[#141c30]/95 backdrop-blur-xl md:flex md:flex-col"
                 style={{ width: threadSidebarWidth }}
             >
                 <div className="p-5 pb-4">
@@ -483,7 +518,7 @@ export default function ChatWindow() {
                     </div>
                 </div>
 
-                <div className="flex min-h-0 flex-1 flex-col px-4 pb-4">
+                <div className="flex min-h-[300px] flex-1 flex-col px-4 pb-4">
                     <div className="flex min-h-0 flex-1 flex-col rounded-[28px] border border-white/6 bg-[#11192a]/90 p-3 shadow-[0_20px_50px_rgba(3,8,20,0.35)]">
                         <div className="flex items-center justify-between px-2 pb-3">
                             <div>
@@ -499,7 +534,7 @@ export default function ChatWindow() {
                             </div>
                         </div>
 
-                        <div className="custom-scrollbar min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
+                        <div className="no-scrollbar min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
                             {threads.map((thread) => {
                                 const isEditing = editingThreadId === thread.id;
 
@@ -763,12 +798,13 @@ export default function ChatWindow() {
                             {!isBootstrapping &&
                                 messages.map((message) => {
                                     const isUser = message.role === "user";
-                                    const toolName = message.toolCall?.toolName;
+                                    const toolCall = message.toolCall ?? parseSerializedToolCall(message.text);
+                                    const toolName = toolCall?.toolName;
                                     const toolOutput =
-                                        message.toolCall?.output ??
-                                        message.toolCall?.result ??
-                                        message.toolCall?.args ??
-                                        message.toolCall?.input;
+                                        toolCall?.output ??
+                                        toolCall?.result ??
+                                        toolCall?.args ??
+                                        toolCall?.input;
                                     const mealPlanPayload =
                                         toolName === "generateMealPlan" ? asMealPlanPayload(toolOutput) : null;
                                     const recipePayload =
@@ -916,6 +952,14 @@ export default function ChatWindow() {
                 }
                 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
                     background: rgba(148, 163, 184, 0.4);
+                }
+                .no-scrollbar::-webkit-scrollbar {
+                    display: none;
+                    width: 0 !important;
+                }
+                .no-scrollbar {
+                    -ms-overflow-style: none;
+                    scrollbar-width: none;
                 }
                 .scrollbar-hide::-webkit-scrollbar {
                     display: none;

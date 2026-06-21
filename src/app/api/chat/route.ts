@@ -113,6 +113,46 @@ function inferIntent(text: string) {
     return { wantsMealPlan, wantsRecipe };
 }
 
+function stripCodeFence(text: string) {
+    return text
+        .trim()
+        .replace(/^```(?:json)?\s*/i, "")
+        .replace(/\s*```$/i, "")
+        .trim();
+}
+
+function parseSerializedToolCall(text: string): { toolName: string; input: unknown } | null {
+    const cleaned = stripCodeFence(text);
+    if (!cleaned.startsWith("[") && !cleaned.startsWith("{")) return null;
+
+    try {
+        const parsed = JSON.parse(cleaned) as unknown;
+        const candidate = Array.isArray(parsed) ? parsed[0] : parsed;
+        if (!candidate || typeof candidate !== "object") return null;
+
+        const record = candidate as Record<string, unknown>;
+        const toolName = typeof record.name === "string" ? record.name : typeof record.toolName === "string" ? record.toolName : "";
+        const input = record.parameters ?? record.input ?? record.args;
+        if (!toolName || input === undefined) return null;
+
+        if (toolName === "generateMealPlan" && mealPlanInputSchema.safeParse(input).success) {
+            return { toolName, input };
+        }
+
+        if (toolName === "getRecipeDetails" && recipeInputSchema.safeParse(input).success) {
+            return { toolName, input };
+        }
+
+        return null;
+    } catch {
+        return null;
+    }
+}
+
+function isSerializedToolCallText(text: string) {
+    return parseSerializedToolCall(text) !== null;
+}
+
 export async function GET(req: Request) {
     try {
         const session = await getServerSession(authOptions);
@@ -292,6 +332,7 @@ Never suggest foods or plans that conflict with known profile restrictions/aller
                 }
             }
         }
+        const serializedToolCall = !finalToolCall && result.text ? parseSerializedToolCall(result.text) : null;
 
         await connectDB();
         const user = await getOrCreateUserByEmail(
@@ -319,18 +360,42 @@ Never suggest foods or plans that conflict with known profile restrictions/aller
             }
         }
 
+        if (serializedToolCall?.toolName === "generateMealPlan") {
+            const parsedMealPlan = mealPlanInputSchema.parse(serializedToolCall.input);
+            await MealPlan.create({
+                userId: user._id,
+                title: parsedMealPlan.title,
+                description: parsedMealPlan.description,
+                meals: parsedMealPlan.meals,
+                totalNutrients: parsedMealPlan.totalNutrients,
+            });
+        }
+
+        const responseToolCall = finalToolCall
+            ? {
+                  toolName: finalToolCall.toolName,
+                  input: finalToolCall.input,
+                  output: finalToolResult?.output ?? finalToolCall.input,
+              }
+            : serializedToolCall
+                ? {
+                      toolName: serializedToolCall.toolName,
+                      input: serializedToolCall.input,
+                      output: serializedToolCall.input,
+                  }
+                : null;
+
         const responsePayload: ChatResponsePayload = {
             id: `msg-${Date.now()}`,
             role: "assistant",
-            text: result.text || (finalToolCall ? "Here is what I prepared for you:" : ""),
+            text:
+                result.text && !isSerializedToolCallText(result.text)
+                    ? result.text
+                    : responseToolCall
+                        ? "Here is what I prepared for you:"
+                        : "",
             threadId: String(chatThread._id),
-            toolCall: finalToolCall
-                ? {
-                      toolName: finalToolCall.toolName,
-                      input: finalToolCall.input,
-                      output: finalToolResult?.output ?? finalToolCall.input,
-                  }
-                : null,
+            toolCall: responseToolCall,
         };
 
         const chatMessages = [
