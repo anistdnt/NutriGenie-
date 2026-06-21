@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/src/components/providers/ToastProvider";
 
@@ -73,6 +73,7 @@ export default function MealPlanCard({ title, description, meals, totalNutrients
     const saveInFlightRef = useRef(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isSaved, setIsSaved] = useState(false);
+    const [isCheckingSaved, setIsCheckingSaved] = useState(true);
     const rawSnacks = Array.isArray(meals?.snacks) ? meals.snacks : [];
     const safeMeals = {
         breakfast: normalizeMeal(meals?.breakfast),
@@ -96,9 +97,46 @@ export default function MealPlanCard({ title, description, meals, totalNutrients
     };
 
     const safeTitle = title?.trim() || "Personalized Meal Plan";
+    const mealPlanPayload = {
+        title: safeTitle,
+        description,
+        meals: safeMeals,
+        totalNutrients: safeTotals,
+    };
+    const mealPlanPayloadKey = JSON.stringify(mealPlanPayload);
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const checkSavedState = async () => {
+            try {
+                setIsCheckingSaved(true);
+                const response = await fetch("/api/meal-plan", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ ...mealPlanPayload, mode: "check" }),
+                });
+                const result = await response.json();
+
+                if (isMounted && response.ok && result?.exists) {
+                    setIsSaved(true);
+                }
+            } catch (error) {
+                console.error("Failed to check meal plan saved state:", error);
+            } finally {
+                if (isMounted) setIsCheckingSaved(false);
+            }
+        };
+
+        checkSavedState();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [mealPlanPayloadKey]);
 
     const handleSave = async () => {
-        if (saveInFlightRef.current || isSaved) return;
+        if (saveInFlightRef.current || isSaved || isCheckingSaved) return;
         saveInFlightRef.current = true;
 
         try {
@@ -106,12 +144,7 @@ export default function MealPlanCard({ title, description, meals, totalNutrients
             const response = await fetch("/api/meal-plan", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    title: safeTitle,
-                    description,
-                    meals: safeMeals,
-                    totalNutrients: safeTotals,
-                }),
+                body: JSON.stringify(mealPlanPayload),
             });
 
             const result = await response.json();
@@ -120,14 +153,11 @@ export default function MealPlanCard({ title, description, meals, totalNutrients
             }
 
             setIsSaved(true);
-            toast.success("Meal plan saved to your library.");
+            toast.success(result?.exists ? "Meal plan is already saved." : "Meal plan saved to your library.");
             if (typeof window !== "undefined") {
                 const detail = result.mealPlan ?? {
                     _id: crypto.randomUUID(),
-                    title: safeTitle,
-                    description,
-                    meals: safeMeals,
-                    totalNutrients: safeTotals,
+                    ...mealPlanPayload,
                     createdAt: new Date().toISOString(),
                 };
                 window.dispatchEvent(new CustomEvent("mealplan:saved", { detail }));
@@ -195,13 +225,13 @@ export default function MealPlanCard({ title, description, meals, totalNutrients
 
                     <button
                         onClick={handleSave}
-                        disabled={isSaving || isSaved}
+                        disabled={isCheckingSaved || isSaving || isSaved}
                         className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${isSaved
                                 ? "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 cursor-default"
                                 : "bg-green-600 text-white hover:bg-green-700 active:scale-95 shadow-lg shadow-green-500/20"
                             }`}
                     >
-                        {isSaved ? "Saved to Library" : isSaving ? "Saving..." : "Save Meal Plan"}
+                        {isSaved ? "Saved to Library" : isCheckingSaved ? "Checking..." : isSaving ? "Saving..." : "Save Meal Plan"}
                     </button>
                 </div>
             </div>
