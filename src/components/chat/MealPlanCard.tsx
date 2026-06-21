@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/src/components/providers/ToastProvider";
 
@@ -70,6 +70,7 @@ function MealItem({ type, meal }: { type: string; meal?: Meal }) {
 export default function MealPlanCard({ title, description, meals, totalNutrients }: MealPlanProps) {
     const router = useRouter();
     const toast = useToast();
+    const saveInFlightRef = useRef(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isSaved, setIsSaved] = useState(false);
     const rawSnacks = Array.isArray(meals?.snacks) ? meals.snacks : [];
@@ -97,6 +98,9 @@ export default function MealPlanCard({ title, description, meals, totalNutrients
     const safeTitle = title?.trim() || "Personalized Meal Plan";
 
     const handleSave = async () => {
+        if (saveInFlightRef.current || isSaved) return;
+        saveInFlightRef.current = true;
+
         try {
             setIsSaving(true);
             const response = await fetch("/api/meal-plan", {
@@ -132,6 +136,7 @@ export default function MealPlanCard({ title, description, meals, totalNutrients
         } catch (error: any) {
             toast.error(error.message || "Failed to save meal plan.");
         } finally {
+            saveInFlightRef.current = false;
             setIsSaving(false);
         }
     };
