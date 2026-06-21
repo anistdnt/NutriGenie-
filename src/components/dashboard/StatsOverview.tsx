@@ -247,7 +247,7 @@ export default function StatsOverview({ section = "all", compact = false }: Stat
                                 <Link href="/meal-plan" className="text-gray-300 hover:text-gray-400">
                                     <ChevronRight className="w-4 h-4 flex-shrink-0" />
                                 </Link>
-                                <button
+                                {/* <button
                                     type="button"
                                     onClick={() => deleteMealPlan(plan._id)}
                                     disabled={deletingPlanId === plan._id}
@@ -260,7 +260,7 @@ export default function StatsOverview({ section = "all", compact = false }: Stat
                                     ) : (
                                         <Trash2 className="w-4 h-4" />
                                     )}
-                                </button>
+                                </button> */}
                             </div>
                         ))}
                     </div>
