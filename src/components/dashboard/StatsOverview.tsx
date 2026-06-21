@@ -197,24 +197,24 @@ export default function StatsOverview({ section = "all", compact = false }: Stat
     }
 
     const StatCard = ({ icon: Icon, label, value, unit, badgeClass, iconClass }: StatCardProps) => (
-        <div className="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
-            <div className="flex items-center gap-3 mb-2">
-                <div className={`p-2 rounded-xl ${badgeClass}`}>
-                    <Icon className={`w-4 h-4 ${iconClass}`} />
+        <div className={`border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900 ${compact ? "rounded-xl p-2.5" : "rounded-2xl p-4"}`}>
+            <div className={`flex items-center ${compact ? "mb-1.5 gap-2" : "mb-2 gap-3"}`}>
+                <div className={`${compact ? "rounded-lg p-1.5" : "rounded-xl p-2"} ${badgeClass}`}>
+                    <Icon className={`${compact ? "h-3.5 w-3.5" : "h-4 w-4"} ${iconClass}`} />
                 </div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">{label}</span>
             </div>
             <div className="flex items-baseline gap-1">
-                <span className="text-lg font-black text-gray-900 dark:text-white">{value}</span>
+                <span className={`${compact ? "text-base" : "text-lg"} font-black text-gray-900 dark:text-white`}>{value}</span>
                 <span className="text-[10px] font-bold text-gray-500">{unit}</span>
             </div>
         </div>
     );
 
     return (
-        <div className={compact ? "space-y-4" : "space-y-6"}>
+        <div className={compact ? "space-y-3" : "space-y-6"}>
             {showVitals && (
-                <div className="grid grid-cols-2 gap-3">
+                <div className={`grid grid-cols-2 ${compact ? "gap-2" : "gap-3"}`}>
                     <StatCard icon={Zap} label="Avg. Calories" value={stats.avgCalories} unit="kcal" badgeClass="bg-orange-500/20" iconClass="text-orange-500" />
                     <StatCard icon={Target} label="Avg. Protein" value={stats.avgProtein} unit="g" badgeClass="bg-blue-500/20" iconClass="text-blue-500" />
                     <StatCard icon={Activity} label="Avg. Carbs" value={stats.avgCarbs} unit="g" badgeClass="bg-green-500/20" iconClass="text-green-500" />
@@ -223,10 +223,10 @@ export default function StatsOverview({ section = "all", compact = false }: Stat
             )}
 
             {showPlans && (
-                <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm">
-                    <div className="flex justify-between items-center mb-4 px-1">
-                        <h3 className="text-sm font-black text-gray-900 dark:text-white flex items-center gap-2">
-                            <History className="w-4 h-4 text-green-600" />
+                <div className={`border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900 ${compact ? "rounded-2xl p-3" : "rounded-3xl p-5"}`}>
+                    <div className={`flex items-center justify-between px-1 ${compact ? "mb-2.5" : "mb-4"}`}>
+                        <h3 className={`${compact ? "text-[13px]" : "text-sm"} flex items-center gap-2 font-black text-gray-900 dark:text-white`}>
+                            <History className={`${compact ? "h-3.5 w-3.5" : "h-4 w-4"} text-green-600`} />
                             Recent Plans
                         </h3>
                         <Link href="/meal-plan" className="text-[10px] font-bold text-green-600 hover:underline uppercase tracking-wider">
@@ -234,11 +234,11 @@ export default function StatsOverview({ section = "all", compact = false }: Stat
                         </Link>
                     </div>
 
-                    <div className="space-y-3">
+                    <div className={compact ? "space-y-2" : "space-y-3"}>
                         {recentPlans.map((plan) => (
                             <div
                                 key={plan._id}
-                                className="flex items-center justify-between gap-2 p-3 rounded-2xl bg-gray-50 dark:bg-gray-800/50 border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
+                                className={`flex items-center justify-between gap-2 border border-transparent bg-gray-50 hover:border-gray-200 dark:bg-gray-800/50 dark:hover:border-gray-700 ${compact ? "rounded-xl p-2.5" : "rounded-2xl p-3"}`}
                             >
                                 <Link href="/meal-plan" className="flex-1 min-w-0">
                                     <h4 className="text-[12px] font-bold text-gray-900 dark:text-white truncate">{plan.title}</h4>
@@ -247,7 +247,7 @@ export default function StatsOverview({ section = "all", compact = false }: Stat
                                 <Link href="/meal-plan" className="text-gray-300 hover:text-gray-400">
                                     <ChevronRight className="w-4 h-4 flex-shrink-0" />
                                 </Link>
-                                <button
+                                {/* <button
                                     type="button"
                                     onClick={() => deleteMealPlan(plan._id)}
                                     disabled={deletingPlanId === plan._id}
@@ -260,7 +260,7 @@ export default function StatsOverview({ section = "all", compact = false }: Stat
                                     ) : (
                                         <Trash2 className="w-4 h-4" />
                                     )}
-                                </button>
+                                </button> */}
                             </div>
                         ))}
                     </div>

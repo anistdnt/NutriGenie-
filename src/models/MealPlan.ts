@@ -12,6 +12,7 @@ export interface IMeal {
 
 export interface IMealPlan {
   userId: mongoose.Types.ObjectId | string;
+  contentHash?: string;
   title: string;
   description?: string;
   meals: {
@@ -42,6 +43,7 @@ const MealSchema = new Schema<IMeal>({
 const MealPlanSchema = new Schema<IMealPlan>(
   {
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    contentHash: { type: String },
     title: { type: String, required: true },
     description: String,
     meals: {
@@ -59,5 +61,11 @@ const MealPlanSchema = new Schema<IMealPlan>(
   },
   { timestamps: true }
 );
+
+MealPlanSchema.index({ userId: 1, contentHash: 1 }, { unique: true, sparse: true });
+
+if (models.MealPlan && !models.MealPlan.schema.path("contentHash")) {
+  mongoose.deleteModel("MealPlan");
+}
 
 export default models.MealPlan || model<IMealPlan>("MealPlan", MealPlanSchema);

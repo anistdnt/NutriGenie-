@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/src/components/providers/ToastProvider";
 
@@ -48,17 +48,17 @@ function MealItem({ type, meal }: { type: string; meal?: Meal }) {
     if (!meal) return null;
 
     return (
-        <div className="flex flex-col p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700/50">
+        <div className="flex flex-col rounded-lg border border-gray-100 bg-gray-50 p-2.5 dark:border-gray-700/50 dark:bg-gray-800/50">
             <div className="flex justify-between items-center mb-1">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-green-600 dark:text-green-400">
                     {type}
                 </span>
                 <span className="text-[10px] text-gray-500">{meal.calories} kcal</span>
             </div>
-            <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 leading-tight">
+            <h4 className="text-[13px] font-semibold text-gray-900 dark:text-gray-100 leading-snug">
                 {meal.name}
             </h4>
-            <div className="flex gap-3 mt-2 text-[10px] text-gray-500 dark:text-gray-400">
+            <div className="mt-1.5 flex gap-3 text-[10px] text-gray-500 dark:text-gray-400">
                 <span>P: {meal.protein}g</span>
                 <span>C: {meal.carbs}g</span>
                 <span>F: {meal.fat}g</span>
@@ -70,8 +70,10 @@ function MealItem({ type, meal }: { type: string; meal?: Meal }) {
 export default function MealPlanCard({ title, description, meals, totalNutrients }: MealPlanProps) {
     const router = useRouter();
     const toast = useToast();
+    const saveInFlightRef = useRef(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isSaved, setIsSaved] = useState(false);
+    const [isCheckingSaved, setIsCheckingSaved] = useState(true);
     const rawSnacks = Array.isArray(meals?.snacks) ? meals.snacks : [];
     const safeMeals = {
         breakfast: normalizeMeal(meals?.breakfast),
@@ -95,19 +97,54 @@ export default function MealPlanCard({ title, description, meals, totalNutrients
     };
 
     const safeTitle = title?.trim() || "Personalized Meal Plan";
+    const mealPlanPayload = {
+        title: safeTitle,
+        description,
+        meals: safeMeals,
+        totalNutrients: safeTotals,
+    };
+    const mealPlanPayloadKey = JSON.stringify(mealPlanPayload);
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const checkSavedState = async () => {
+            try {
+                setIsCheckingSaved(true);
+                const response = await fetch("/api/meal-plan", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ ...mealPlanPayload, mode: "check" }),
+                });
+                const result = await response.json();
+
+                if (isMounted && response.ok && result?.exists) {
+                    setIsSaved(true);
+                }
+            } catch (error) {
+                console.error("Failed to check meal plan saved state:", error);
+            } finally {
+                if (isMounted) setIsCheckingSaved(false);
+            }
+        };
+
+        checkSavedState();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [mealPlanPayloadKey]);
 
     const handleSave = async () => {
+        if (saveInFlightRef.current || isSaved || isCheckingSaved) return;
+        saveInFlightRef.current = true;
+
         try {
             setIsSaving(true);
             const response = await fetch("/api/meal-plan", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    title: safeTitle,
-                    description,
-                    meals: safeMeals,
-                    totalNutrients: safeTotals,
-                }),
+                body: JSON.stringify(mealPlanPayload),
             });
 
             const result = await response.json();
@@ -116,14 +153,11 @@ export default function MealPlanCard({ title, description, meals, totalNutrients
             }
 
             setIsSaved(true);
-            toast.success("Meal plan saved to your library.");
+            toast.success(result?.exists ? "Meal plan is already saved." : "Meal plan saved to your library.");
             if (typeof window !== "undefined") {
                 const detail = result.mealPlan ?? {
                     _id: crypto.randomUUID(),
-                    title: safeTitle,
-                    description,
-                    meals: safeMeals,
-                    totalNutrients: safeTotals,
+                    ...mealPlanPayload,
                     createdAt: new Date().toISOString(),
                 };
                 window.dispatchEvent(new CustomEvent("mealplan:saved", { detail }));
@@ -132,21 +166,22 @@ export default function MealPlanCard({ title, description, meals, totalNutrients
         } catch (error: any) {
             toast.error(error.message || "Failed to save meal plan.");
         } finally {
+            saveInFlightRef.current = false;
             setIsSaving(false);
         }
     };
     
 
     return (
-        <div className="my-4 w-full bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-            <div className="p-4 bg-gradient-to-r from-green-600/10 to-teal-500/10 border-b border-gray-100 dark:border-gray-800">
+        <div className="my-2 w-full overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-gray-800 dark:bg-gray-900">
+            <div className="border-b border-gray-100 bg-gradient-to-r from-green-600/10 to-teal-500/10 p-3 dark:border-gray-800">
                 <div className="flex justify-between items-start">
                     <div>
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">{safeTitle}</h3>
+                        <h3 className="text-base font-bold text-gray-900 dark:text-gray-100">{safeTitle}</h3>
                         {description && <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{description}</p>}
                     </div>
                     <div className="text-right">
-                        <div className="text-xl font-black text-green-600 dark:text-green-400">
+                        <div className="text-lg font-black text-green-600 dark:text-green-400">
                             {safeTotals.calories}
                         </div>
                         <div className="text-[10px] font-bold text-gray-500 uppercase tracking-tighter">Total Calories</div>
@@ -154,17 +189,17 @@ export default function MealPlanCard({ title, description, meals, totalNutrients
                 </div>
             </div>
 
-            <div className="p-4 space-y-3">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="space-y-2.5 p-3">
+                <div className="grid grid-cols-1 gap-2.5 md:grid-cols-3">
                     <MealItem type="Breakfast" meal={safeMeals.breakfast} />
                     <MealItem type="Lunch" meal={safeMeals.lunch} />
                     <MealItem type="Dinner" meal={safeMeals.dinner} />
                 </div>
 
                 {safeMeals.snacks.length > 0 && (
-                    <div className="pt-2 border-t border-gray-100 dark:border-gray-800">
+                    <div className="border-t border-gray-100 pt-2 dark:border-gray-800">
                         <h4 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Recommended Snacks</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                             {safeMeals.snacks.map((snack, idx) => (
                                 <MealItem key={idx} type={`Snack ${idx + 1}`} meal={snack} />
                             ))}
@@ -172,7 +207,7 @@ export default function MealPlanCard({ title, description, meals, totalNutrients
                     </div>
                 )}
 
-                <div className="flex items-center justify-between pt-4 mt-2 border-t border-gray-100 dark:border-gray-800">
+                <div className="mt-2 flex items-center justify-between border-t border-gray-100 pt-3 dark:border-gray-800">
                     <div className="flex gap-4">
                         <div className="text-center">
                             <div className="text-xs font-bold text-gray-900 dark:text-gray-100">{safeTotals.protein}g</div>
@@ -190,13 +225,13 @@ export default function MealPlanCard({ title, description, meals, totalNutrients
 
                     <button
                         onClick={handleSave}
-                        disabled={isSaving || isSaved}
-                        className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${isSaved
+                        disabled={isCheckingSaved || isSaving || isSaved}
+                        className={`rounded-full px-3 py-1.5 text-xs font-bold transition-all ${isSaved
                                 ? "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 cursor-default"
                                 : "bg-green-600 text-white hover:bg-green-700 active:scale-95 shadow-lg shadow-green-500/20"
                             }`}
                     >
-                        {isSaved ? "Saved to Library" : isSaving ? "Saving..." : "Save Meal Plan"}
+                        {isSaved ? "Saved to Library" : isCheckingSaved ? "Checking..." : isSaving ? "Saving..." : "Save Meal Plan"}
                     </button>
                 </div>
             </div>

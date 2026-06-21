@@ -107,8 +107,8 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     },
 ];
 
-const MIN_THREAD_WIDTH = 260;
-const MAX_THREAD_WIDTH = 430;
+const MIN_THREAD_WIDTH = 228;
+const MAX_THREAD_WIDTH = 340;
 
 function createWelcomeText(firstName: string) {
     return `Hello ${firstName}. I am Dr. Genie, your personal health and nutrition coach.
@@ -218,7 +218,7 @@ export default function ChatWindow() {
     const [messages, setMessages] = useState<Message[]>([]);
     const [threads, setThreads] = useState<ThreadSummary[]>([]);
     const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
-    const [threadSidebarWidth, setThreadSidebarWidth] = useState(296);
+    const [threadSidebarWidth, setThreadSidebarWidth] = useState(252);
     const [isResizingThreadPanel, setIsResizingThreadPanel] = useState(false);
     const [editingThreadId, setEditingThreadId] = useState<string | null>(null);
     const [draftThreadTitle, setDraftThreadTitle] = useState("");
@@ -407,6 +407,7 @@ export default function ChatWindow() {
 
     const hasConversation = messages.some((message) => message.role === "user");
     const showStarterPrompts = !isBootstrapping && !hasConversation;
+    const showWorkspaceOverview = !isBootstrapping && !hasConversation;
     const userMessageCount = messages.filter((message) => message.role === "user").length;
     const activeThread = threads.find((thread) => thread.id === activeThreadId) ?? null;
     const conversationTitle = activeThread?.title || (hasConversation ? "Current conversation" : "AI Health Assistant");
@@ -442,48 +443,48 @@ export default function ChatWindow() {
                 className="no-scrollbar relative z-10 hidden shrink-0 overflow-y-auto overscroll-contain border-r border-white/6 bg-[#141c30]/95 backdrop-blur-xl md:flex md:flex-col"
                 style={{ width: threadSidebarWidth }}
             >
-                <div className="p-5 pb-4">
+                <div className="p-4 pb-3">
                     <button
                         onClick={startNewChat}
-                        className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#4edea3] to-[#1fcf9a] px-4 py-4 text-sm font-semibold text-[#08111f] shadow-[0_18px_40px_rgba(78,222,163,0.18)] transition-transform hover:scale-[1.01] active:scale-[0.99]"
+                        className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#4edea3] to-[#1fcf9a] px-3 py-3 text-sm font-semibold text-[#08111f] shadow-[0_14px_30px_rgba(78,222,163,0.16)] transition-transform hover:scale-[1.01] active:scale-[0.99]"
                     >
                         <Plus className="h-4 w-4" />
                         New Conversation
                     </button>
                 </div>
 
-                <div className="px-4 pb-4">
-                    <p className="px-3 text-[10px] font-bold uppercase tracking-[0.28em] text-[#4edea3]">
+                <div className="px-3 pb-3">
+                    <p className="px-2 text-[10px] font-bold uppercase tracking-[0.24em] text-[#4edea3]">
                         Navigation
                     </p>
-                    <div className="mt-3 space-y-2">
+                    <div className="mt-2 space-y-1.5">
                         {SIDEBAR_ITEMS.map((item) => {
                             const Icon = item.icon;
                             const isExpanded = expandedSidebarSection === item.id;
                             const isCurrentChat = item.id === "current-chat";
                             return (
-                                <div key={item.id} className="space-y-2">
+                                <div key={item.id} className="space-y-1.5">
                                     <button
                                         type="button"
                                         onClick={() => {
                                             if (!item.expandable) return;
                                             setExpandedSidebarSection((prev) => (prev === item.id ? null : (item.id as "meal-plans" | "vitals")));
                                         }}
-                                        className={`group flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left transition-all ${
+                                        className={`group flex w-full items-center gap-2.5 rounded-2xl px-2.5 py-2.5 text-left transition-all ${
                                             isCurrentChat || isExpanded
                                                 ? "border border-[#4edea3]/30 bg-[#1b2338] text-[#4edea3] shadow-[inset_0_0_0_1px_rgba(78,222,163,0.06)]"
                                                 : "border border-transparent bg-transparent text-slate-400 hover:border-white/6 hover:bg-[#1a2236]"
                                         }`}
                                     >
                                         <div
-                                            className={`flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br ${item.accent} ${
+                                            className={`flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br ${item.accent} ${
                                                 isCurrentChat || isExpanded ? "text-[#4edea3]" : "text-slate-300"
                                             }`}
                                         >
-                                            <Icon className="h-5 w-5" />
+                                            <Icon className="h-4.5 w-4.5" />
                                         </div>
                                         <div className="min-w-0 flex-1">
-                                            <p className="truncate text-sm font-semibold">{item.label}</p>
+                                            <p className="truncate text-[13px] font-semibold">{item.label}</p>
                                             <p className="truncate text-xs text-slate-500 group-hover:text-slate-400">
                                                 {item.description}
                                             </p>
@@ -497,15 +498,15 @@ export default function ChatWindow() {
                                     </button>
 
                                     {item.id === "meal-plans" && isExpanded && (
-                                        <div className="rounded-[24px] border border-white/6 bg-[#10182a] p-3">
+                                        <div className="rounded-[20px] border border-white/6 bg-[#10182a] p-2.5">
                                             <StatsOverview section="plans" compact />
                                         </div>
                                     )}
 
                                     {item.id === "vitals" && isExpanded && (
-                                        <div className="rounded-[24px] border border-white/6 bg-[#10182a] p-3">
-                                            <div className="mb-3 px-1">
-                                                <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-400">
+                                        <div className="rounded-[20px] border border-white/6 bg-[#10182a] p-2.5">
+                                            <div className="mb-2 px-1">
+                                                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
                                                     Health & Nutrition Overview
                                                 </p>
                                             </div>
@@ -518,30 +519,30 @@ export default function ChatWindow() {
                     </div>
                 </div>
 
-                <div className="flex min-h-[300px] flex-1 flex-col px-4 pb-4">
-                    <div className="flex min-h-0 flex-1 flex-col rounded-[28px] border border-white/6 bg-[#11192a]/90 p-3 shadow-[0_20px_50px_rgba(3,8,20,0.35)]">
-                        <div className="flex items-center justify-between px-2 pb-3">
+                <div className="flex min-h-[260px] flex-1 flex-col px-3 pb-3">
+                    <div className="flex min-h-0 flex-1 flex-col rounded-[22px] border border-white/6 bg-[#11192a]/90 p-2.5 shadow-[0_16px_38px_rgba(3,8,20,0.3)]">
+                        <div className="flex items-center justify-between px-2 pb-2.5">
                             <div>
                                 <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-400">
                                     Chat History
                                 </p>
-                                <p className="mt-1 text-xs text-slate-500">
+                                <p className="mt-0.5 text-[11px] text-slate-500">
                                     {threads.length} saved {threads.length === 1 ? "conversation" : "conversations"}
                                 </p>
                             </div>
-                            <div className="rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+                            <div className="rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.18em] text-slate-400">
                                 Live
                             </div>
                         </div>
 
-                        <div className="no-scrollbar min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
+                        <div className="no-scrollbar min-h-0 flex-1 space-y-1.5 overflow-y-auto pr-1">
                             {threads.map((thread) => {
                                 const isEditing = editingThreadId === thread.id;
 
                                 return (
                                     <div
                                         key={thread.id}
-                                        className={`rounded-2xl border px-3 py-3 transition-all ${
+                                        className={`rounded-xl border px-2.5 py-2.5 transition-all ${
                                             activeThreadId === thread.id
                                                 ? "border-[#4edea3]/35 bg-[#1b2439] shadow-[0_0_0_1px_rgba(78,222,163,0.07)]"
                                                 : "border-white/6 bg-[#171f33]/60 hover:border-white/10 hover:bg-[#1a2338]"
@@ -554,13 +555,13 @@ export default function ChatWindow() {
                                                     className="min-w-0 flex-1 text-left"
                                                 >
                                                     <p
-                                                        className={`truncate text-sm font-semibold ${
+                                                        className={`truncate text-[13px] font-semibold ${
                                                             activeThreadId === thread.id ? "text-slate-100" : "text-slate-200"
                                                         }`}
                                                     >
                                                         {thread.title || "New Chat"}
                                                     </p>
-                                                    <p className="mt-1 text-[11px] uppercase tracking-[0.18em] text-slate-500">
+                                                    <p className="mt-0.5 text-[10px] uppercase tracking-[0.16em] text-slate-500">
                                                         {formatThreadTimestamp(thread.lastMessageAt)}
                                                     </p>
                                                 </button>
@@ -570,7 +571,7 @@ export default function ChatWindow() {
                                                         setEditingThreadId(thread.id);
                                                         setDraftThreadTitle(thread.title || "New Chat");
                                                     }}
-                                                    className="rounded-xl border border-transparent p-2 text-slate-400 transition-colors hover:border-white/8 hover:bg-white/5 hover:text-slate-200"
+                                                    className="rounded-lg border border-transparent p-1.5 text-slate-400 transition-colors hover:border-white/8 hover:bg-white/5 hover:text-slate-200"
                                                     aria-label="Rename chat"
                                                 >
                                                     <Pencil className="h-3.5 w-3.5" />
@@ -619,7 +620,7 @@ export default function ChatWindow() {
                             })}
 
                             {threads.length === 0 && (
-                                <div className="rounded-2xl border border-dashed border-white/10 bg-[#171f33]/50 px-4 py-6 text-center">
+                                <div className="rounded-xl border border-dashed border-white/10 bg-[#171f33]/50 px-3 py-5 text-center">
                                     <p className="text-sm font-medium text-slate-300">No chats yet</p>
                                     <p className="mt-1 text-xs text-slate-500">
                                         Start a new conversation to build your history.
@@ -630,17 +631,17 @@ export default function ChatWindow() {
                     </div>
                 </div>
 
-                <div className="px-4 pb-5 pt-1">
+                <div className="px-3 pb-4 pt-1">
                     <button
                         type="button"
-                        className="flex w-full items-center gap-3 rounded-2xl border border-white/6 bg-[#151d31] px-4 py-3 text-left text-slate-300 transition-colors hover:bg-[#1a2337]"
+                        className="flex w-full items-center gap-2.5 rounded-2xl border border-white/6 bg-[#151d31] px-3 py-2.5 text-left text-slate-300 transition-colors hover:bg-[#1a2337]"
                     >
-                        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/5 text-slate-200">
-                            <Settings className="h-5 w-5" />
+                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 text-slate-200">
+                            <Settings className="h-4 w-4" />
                         </div>
                         <div>
-                            <p className="text-sm font-semibold">Settings</p>
-                            <p className="text-xs text-slate-500">We can wire this panel next.</p>
+                            <p className="text-[13px] font-semibold">Settings</p>
+                            <p className="text-[11px] text-slate-500">We can wire this panel next.</p>
                         </div>
                     </button>
                 </div>
@@ -656,21 +657,22 @@ export default function ChatWindow() {
 
             <div className="relative z-10 flex min-w-0 flex-1 flex-col overflow-hidden">
                 <div className="border-b border-white/6 bg-[#141c2e]/78 backdrop-blur-xl">
-                    <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
+                    <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-3 sm:px-6">
                         <div>
-                            <p className="text-xs font-medium text-slate-400">Conversation with</p>
-                            <p className="text-sm font-semibold text-[#4edea3]">{conversationTitle}</p>
+                            <p className="text-[11px] font-medium text-slate-400">Conversation with</p>
+                            <p className="text-[13px] font-semibold text-[#4edea3]">{conversationTitle}</p>
                         </div>
-                        <div className="flex items-center gap-2 rounded-full border border-emerald-400/10 bg-emerald-400/8 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#4edea3]">
-                            <span className="h-2 w-2 rounded-full bg-[#4edea3]" />
+                        <div className="flex items-center gap-2 rounded-full border border-emerald-400/10 bg-emerald-400/8 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-[#4edea3]">
+                            <span className="h-1.5 w-1.5 rounded-full bg-[#4edea3]" />
                             {isBootstrapping ? "Syncing" : "Neural Engine Active"}
                         </div>
                     </div>
                 </div>
 
-                <div className="custom-scrollbar relative flex-1 overflow-y-auto px-4 py-5 sm:px-6 lg:px-8">
-                    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
-                        <section className="grid gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.8fr)]">
+                <div className="custom-scrollbar relative flex-1 overflow-y-auto px-4 py-3 sm:px-6 lg:px-8">
+                    <div className="mx-auto flex w-full max-w-5xl flex-col gap-4">
+                        {showWorkspaceOverview && (
+                        <section className="grid gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(280px,0.8fr)]">
                             <div className="overflow-hidden rounded-[32px] border border-white/6 bg-[#151d31]/95 p-6 shadow-[0_30px_60px_rgba(3,8,20,0.3)]">
                                 <div className="flex items-start justify-between gap-4">
                                     <div className="max-w-xl">
@@ -755,6 +757,7 @@ export default function ChatWindow() {
                                 </div>
                             </div>
                         </section>
+                        )}
 
                         {showStarterPrompts && (
                             <section className="rounded-[28px] border border-white/6 bg-[#121a2b]/92 p-4 shadow-[0_18px_40px_rgba(3,8,20,0.26)]">
@@ -783,7 +786,7 @@ export default function ChatWindow() {
                             </section>
                         )}
 
-                        <section className="space-y-7 pb-4">
+                        <section className="space-y-4 pb-3">
                             {isBootstrapping && (
                                 <div className="rounded-[28px] border border-white/6 bg-[#121a2b]/92 p-6">
                                     <div className="animate-pulse">
@@ -813,28 +816,28 @@ export default function ChatWindow() {
                                     return (
                                         <div
                                             key={message.id}
-                                            className={`flex gap-4 ${
+                                            className={`flex gap-3 ${
                                                 isUser ? "justify-end" : "justify-start"
                                             } animate-in fade-in slide-in-from-bottom-2 duration-300`}
                                         >
                                             {!isUser && (
-                                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#4edea3]/20 bg-[#192235] text-[#4edea3] shadow-[0_0_0_10px_rgba(78,222,163,0.04)]">
-                                                    <Bot className="h-5 w-5" />
+                                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#4edea3]/20 bg-[#192235] text-[#4edea3] shadow-[0_0_0_7px_rgba(78,222,163,0.035)]">
+                                                    <Bot className="h-4 w-4" />
                                                 </div>
                                             )}
 
                                             <div
-                                                className={`flex max-w-[min(84%,56rem)] flex-col gap-3 ${
+                                                className={`flex max-w-[min(90%,48rem)] flex-col gap-2 ${
                                                     isUser ? "items-end" : "items-start"
                                                 }`}
                                             >
-                                                <span className="px-1 text-[11px] font-bold uppercase tracking-[0.24em] text-slate-500">
+                                                <span className="px-1 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
                                                     {isUser ? "You" : "Dr. Genie"}
                                                 </span>
 
                                                 {message.text && !(toolName && isInternalToolText(message.text)) && (
                                                     <div
-                                                        className={`rounded-[28px] px-6 py-5 text-[15px] leading-8 shadow-[0_20px_40px_rgba(3,8,20,0.18)] ${
+                                                        className={`rounded-2xl px-4 py-3 text-sm leading-7 shadow-[0_14px_30px_rgba(3,8,20,0.16)] ${
                                                             isUser
                                                                 ? "rounded-tr-[8px] bg-[#2a3248] text-slate-100"
                                                                 : "rounded-tl-[8px] border border-white/6 bg-[#121a2c]/95 text-slate-100"
@@ -858,7 +861,7 @@ export default function ChatWindow() {
                                             </div>
 
                                             {isUser && (
-                                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/10 bg-[#eef2ff] text-base font-black text-[#16213a]">
+                                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-[#eef2ff] text-sm font-black text-[#16213a]">
                                                     {session?.user?.name?.[0]?.toUpperCase() ?? "Y"}
                                                 </div>
                                             )}
@@ -867,15 +870,15 @@ export default function ChatWindow() {
                                 })}
 
                             {isLoading && (
-                                <div className="flex gap-4 animate-in fade-in duration-300">
-                                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#4edea3]/20 bg-[#192235] text-[#4edea3] shadow-[0_0_0_10px_rgba(78,222,163,0.04)]">
-                                        <Bot className="h-5 w-5" />
+                                <div className="flex gap-3 animate-in fade-in duration-300">
+                                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#4edea3]/20 bg-[#192235] text-[#4edea3] shadow-[0_0_0_7px_rgba(78,222,163,0.035)]">
+                                        <Bot className="h-4 w-4" />
                                     </div>
-                                    <div className="flex flex-col gap-3">
-                                        <span className="px-1 text-[11px] font-bold uppercase tracking-[0.24em] text-slate-500">
+                                    <div className="flex flex-col gap-2">
+                                        <span className="px-1 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
                                             Dr. Genie
                                         </span>
-                                        <div className="inline-flex rounded-[24px] rounded-tl-[8px] border border-white/6 bg-[#121a2c]/95 px-5 py-4">
+                                        <div className="inline-flex rounded-2xl rounded-tl-md border border-white/6 bg-[#121a2c]/95 px-4 py-3">
                                             <div className="flex items-center gap-2">
                                                 {[0, 150, 300].map((delay, idx) => (
                                                     <div
@@ -895,9 +898,9 @@ export default function ChatWindow() {
                     </div>
                 </div>
 
-                <div className="border-t border-white/6 bg-[#10182a]/88 px-4 py-5 backdrop-blur-xl sm:px-6 lg:px-8">
-                    <div className="mx-auto w-full max-w-6xl">
-                        <div className="rounded-[30px] border border-white/6 bg-[#262e44]/92 px-4 py-2 shadow-[0_22px_40px_rgba(3,8,20,0.28)]">
+                <div className="border-t border-white/6 bg-[#10182a]/88 px-4 py-3 backdrop-blur-xl sm:px-6 lg:px-8">
+                    <div className="mx-auto w-full max-w-5xl">
+                        <div className="rounded-[24px] border border-white/6 bg-[#262e44]/92 px-3 py-1.5 shadow-[0_18px_34px_rgba(3,8,20,0.24)]">
                             <div className="flex items-center gap-3">
                                 {/* <button
                                     type="button"
@@ -920,19 +923,19 @@ export default function ChatWindow() {
                                             : "Sign in to start chatting"
                                     }
                                     disabled={isLoading || status !== "authenticated"}
-                                    className="scrollbar-hide flex-1 resize-none bg-transparent px-1 py-4 text-[15px] leading-7 text-slate-100 placeholder:text-slate-500 focus:outline-none disabled:opacity-50"
-                                    style={{ minHeight: "56px", maxHeight: "160px", overflowY: "auto" }}
+                                    className="scrollbar-hide flex-1 resize-none bg-transparent px-1 py-3 text-sm leading-6 text-slate-100 placeholder:text-slate-500 focus:outline-none disabled:opacity-50"
+                                    style={{ minHeight: "44px", maxHeight: "132px", overflowY: "auto" }}
                                 />
                                 <button
                                     onClick={() => sendMessage()}
                                     disabled={isLoading || !input.trim() || status !== "authenticated"}
-                                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#4edea3] text-[#08111f] transition-all hover:shadow-[0_14px_30px_rgba(78,222,163,0.25)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-30"
+                                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#4edea3] text-[#08111f] transition-all hover:shadow-[0_14px_30px_rgba(78,222,163,0.25)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-30"
                                 >
-                                    <ArrowUp className="h-5 w-5" />
+                                    <ArrowUp className="h-4.5 w-4.5" />
                                 </button>
                             </div>
                         </div>
-                        <p className="mt-4 text-center text-[11px] uppercase tracking-[0.22em] text-slate-600">
+                        <p className="mt-2 text-center text-[10px] uppercase tracking-[0.2em] text-slate-600">
                             AI-generated insights should be verified with a healthcare professional.
                         </p>
                     </div>

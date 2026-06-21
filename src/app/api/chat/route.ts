@@ -5,7 +5,6 @@ import { authOptions } from "@/src/lib/auth/auth-options";
 import { z } from "zod";
 import { connectDB } from "@/src/lib/db/mongo";
 import { findUserByEmailInsensitive, getOrCreateUserByEmail } from "@/src/lib/db/user";
-import MealPlan from "@/src/models/MealPlan";
 import Chat from "@/src/models/Chat";
 
 export const runtime = "nodejs";
@@ -284,29 +283,7 @@ Never suggest foods or plans that conflict with known profile restrictions/aller
                 generateMealPlan: createTool({
                     description: "Generate a complete daily meal plan with breakfast, lunch, dinner and snacks.",
                     inputSchema: mealPlanInputSchema,
-                    execute: async (params) => {
-                        try {
-                            await connectDB();
-                            const user = await getOrCreateUserByEmail(
-                                session.user.email!,
-                                session.user.name,
-                                session.user.image
-                            );
-                            if (user) {
-                                await MealPlan.create({
-                                    userId: user._id,
-                                    title: params.title,
-                                    description: params.description,
-                                    meals: params.meals,
-                                    totalNutrients: params.totalNutrients,
-                                });
-                            }
-                            return params;
-                        } catch (error) {
-                            console.error("Error saving meal plan:", error);
-                            return params;
-                        }
-                    },
+                    execute: async (params) => params,
                 }),
                 getRecipeDetails: createTool({
                     description: "Get detailed cooking instructions and nutritional information for a specific dish.",
@@ -358,17 +335,6 @@ Never suggest foods or plans that conflict with known profile restrictions/aller
                 chatThread.title = createThreadTitle(firstUserMessage.content);
                 await chatThread.save();
             }
-        }
-
-        if (serializedToolCall?.toolName === "generateMealPlan") {
-            const parsedMealPlan = mealPlanInputSchema.parse(serializedToolCall.input);
-            await MealPlan.create({
-                userId: user._id,
-                title: parsedMealPlan.title,
-                description: parsedMealPlan.description,
-                meals: parsedMealPlan.meals,
-                totalNutrients: parsedMealPlan.totalNutrients,
-            });
         }
 
         const responseToolCall = finalToolCall
