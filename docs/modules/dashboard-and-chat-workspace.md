@@ -22,6 +22,7 @@ This module owns the main protected workspace where the user chats with Dr. Geni
 ## Current Behavior
 
 - The dashboard is a two-panel workspace with a resizable stats sidebar and a main chat area.
+- The left sidebar scrolls vertically on shorter screens while the chat history panel keeps enough height for saved threads to remain visible and independently scrollable.
 - The chat workspace can bootstrap the latest thread, load saved threads, start a new chat, and rename an existing thread.
 - Chat messages are sent to `/api/chat` and rendered as regular assistant text plus structured tool output when available.
 - Starter prompts help guide first-use behavior.
